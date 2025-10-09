@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Spinner, Alert } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import {
+  getIncomes,
   getIncomesByMonth,
   addIncome,
   updateIncome,
@@ -12,6 +13,7 @@ import {
   updateSource,
   deleteSource,
 } from "../services/api";
+
 
 const IncomePage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -56,7 +58,7 @@ const IncomePage = () => {
       const decoded = jwtDecode(token);
       const id =
         decoded[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ] ||
         decoded.sub ||
         null;
@@ -68,6 +70,32 @@ const IncomePage = () => {
     }
   }, []);
 
+  // // Fetch incomes
+  // useEffect(() => {
+  //   if (!userId) return;
+
+  //   const fetchIncomes = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const now = new Date();
+  //       const response = await getIncomesByMonth(
+  //         userId,
+  //         now.getMonth() + 1,
+  //         now.getFullYear()
+  //       );
+  //       setIncomeList(response.data);
+  //       setError(null);
+  //     } catch (e) {
+  //       setError("Failed to load incomes.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchIncomes();
+  // }, [userId]);
+
+  // Fetch sources
   // Fetch incomes
   useEffect(() => {
     if (!userId) return;
@@ -75,15 +103,11 @@ const IncomePage = () => {
     const fetchIncomes = async () => {
       setLoading(true);
       try {
-        const now = new Date();
-        const response = await getIncomesByMonth(
-          userId,
-          now.getMonth() + 1,
-          now.getFullYear()
-        );
+        const response = await getIncomes(userId); // ✅ Fetch all incomes
         setIncomeList(response.data);
         setError(null);
       } catch (e) {
+        console.error("Failed to load incomes:", e);
         setError("Failed to load incomes.");
       } finally {
         setLoading(false);
@@ -93,7 +117,8 @@ const IncomePage = () => {
     fetchIncomes();
   }, [userId]);
 
-  // Fetch sources
+
+
   useEffect(() => {
     if (!userId) return;
 
@@ -170,23 +195,22 @@ const IncomePage = () => {
     e.preventDefault();
     if (!userId) return setError("User is not authenticated");
 
-    // Extract from formData.date (which is in YYYY-MM-DD)
-    const [year, month, day] = formData.date.split("-").map(Number);
+    const [year, month] = formData.date.split("-").map(Number);
 
     const incomePayload = {
-      userId: userId,
+      userId,
       owner: formData.owner || userId,
       sourceType: formData.sourceType,
       amount: parseFloat(formData.amount),
-      date: formData.date, // original date string
-      month: month, // ✅ Correct month (1–12 directly from input)
-      year: year,
+      date: formData.date,
+      month,
+      year,
       isRecurring: formData.frequency !== "None",
       isEstimated: formData.isEstimated,
       frequency: formData.frequency,
       description: formData.description || "",
       createdBy: userId,
-      createdDate: new Date().toISOString(),
+      createdDate: editingIncome?.createdDate || new Date().toISOString(),
       modifiedDate: new Date().toISOString(),
     };
 
@@ -197,8 +221,8 @@ const IncomePage = () => {
         await addIncome(incomePayload);
       }
 
-      // Use the same year/month you extracted instead of now
-      const refresh = await getIncomesByMonth(userId, month, year);
+      // ✅ Refresh all incomes (not filtered by month)
+      const refresh = await getIncomes(userId);
       setIncomeList(refresh.data);
       setError(null);
     } catch (err) {
@@ -209,20 +233,35 @@ const IncomePage = () => {
     }
   };
 
+
+
+  // const handleDeleteIncome = async (id) => {
+  //   try {
+  //     await deleteIncome(id);
+  //     const now = new Date();
+  //     const response = await getIncomesByMonth(
+  //       userId,
+  //       now.getMonth() + 1,
+  //       now.getFullYear()
+  //     );
+  //     setIncomeList(response.data);
+  //   } catch {
+  //     setError("Failed to delete income.");
+  //   }
+  // };
+
+
   const handleDeleteIncome = async (id) => {
     try {
       await deleteIncome(id);
-      const now = new Date();
-      const response = await getIncomesByMonth(
-        userId,
-        now.getMonth() + 1,
-        now.getFullYear()
-      );
+      const response = await getIncomes(userId);
       setIncomeList(response.data);
     } catch {
       setError("Failed to delete income.");
     }
   };
+
+
 
   // Add for next month
   const handleGenerateNextMonth = async () => {
@@ -257,17 +296,14 @@ const IncomePage = () => {
   const handleDuplicateIncome = async (id) => {
     try {
       await duplicateIncome(id);
-      const now = new Date();
-      const response = await getIncomesByMonth(
-        userId,
-        now.getMonth() + 1,
-        now.getFullYear()
-      );
+      const response = await getIncomes(userId);
       setIncomeList(response.data);
     } catch {
       setError("Failed to duplicate income.");
     }
   };
+
+
 
   // Logout
   const handleLogout = () => {
@@ -530,15 +566,6 @@ const IncomePage = () => {
                 required
               />
             </Form.Group>
-            {/* <Form.Group className="mb-3">
-              <Form.Label>Source Type</Form.Label>
-              <Form.Control
-                name="sourceType"
-                value={formData.sourceType}
-                onChange={handleFormChange}
-                required
-              />
-            </Form.Group> */}
 
             <Form.Group className="mb-3">
               <Form.Label>Source Type</Form.Label>
