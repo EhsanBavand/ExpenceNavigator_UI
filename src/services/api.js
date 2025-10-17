@@ -135,17 +135,21 @@ export const getCategoryById = async (id) => {
   }
 };
 
-// Create a new category
+// Create a new category (with budget and isDefault)
 export const createCategory = async (category) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/Category`, category);
+    // category object can have: name, userId, isActive, budget, isDefault
     return response.data;
   } catch (error) {
     console.error("Error creating category:", error);
     throw error;
   }
 };
+
+// Update a category (with budget and isDefault)
 export const updateCategory = async (id, category) => {
+  // category object can have: name, userId, isActive, budget, isDefault
   console.log("Category ID:", id);
   console.log("Category data:", category);
 
@@ -208,14 +212,16 @@ export const createSubCategory = async (subCategory) => {
 
 export const updateSubCategory = async (id, subcategory) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/SubCategory/${id}`, subcategory);
+    const response = await axios.put(
+      `${API_BASE_URL}/SubCategory/${id}`,
+      subcategory
+    );
     return response.data;
   } catch (error) {
     console.error(`Error updating subcategory ${id}:`, error);
     throw error;
   }
 };
-
 
 export const deleteSubCategory = async (id) => {
   try {
@@ -266,7 +272,7 @@ export const updatePlace = async (id, place) => {
 export const deletePlace = async (id) => {
   try {
     const response = await axios.delete(`${API_BASE_URL}/Place/${id}`);
-                                    
+
     return response.status === 200;
   } catch (error) {
     console.error(`Error deleting place ${id}:`, error);
@@ -338,4 +344,3 @@ export const deleteExpense = async (id) => {
     throw error;
   }
 };
-

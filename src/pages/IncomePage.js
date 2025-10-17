@@ -14,7 +14,6 @@ import {
   deleteSource,
 } from "../services/api";
 
-
 const IncomePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [incomeList, setIncomeList] = useState([]);
@@ -58,7 +57,7 @@ const IncomePage = () => {
       const decoded = jwtDecode(token);
       const id =
         decoded[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ] ||
         decoded.sub ||
         null;
@@ -116,8 +115,6 @@ const IncomePage = () => {
 
     fetchIncomes();
   }, [userId]);
-
-
 
   useEffect(() => {
     if (!userId) return;
@@ -233,8 +230,6 @@ const IncomePage = () => {
     }
   };
 
-
-
   // const handleDeleteIncome = async (id) => {
   //   try {
   //     await deleteIncome(id);
@@ -250,7 +245,6 @@ const IncomePage = () => {
   //   }
   // };
 
-
   const handleDeleteIncome = async (id) => {
     try {
       await deleteIncome(id);
@@ -260,8 +254,6 @@ const IncomePage = () => {
       setError("Failed to delete income.");
     }
   };
-
-
 
   // Add for next month
   const handleGenerateNextMonth = async () => {
@@ -302,8 +294,6 @@ const IncomePage = () => {
       setError("Failed to duplicate income.");
     }
   };
-
-
 
   // Logout
   const handleLogout = () => {
@@ -501,7 +491,7 @@ const IncomePage = () => {
             <tbody>
               {incomeList.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center">
+                  <td colSpan="9" className="text-center">
                     No incomes found
                   </td>
                 </tr>
