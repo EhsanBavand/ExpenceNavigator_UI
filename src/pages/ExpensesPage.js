@@ -1313,7 +1313,7 @@ export default function ExpenseManager() {
                       <input
                         type="checkbox"
                         className="form-check-input"
-                        checked={editExpenseForm.isFixed}
+                        checked={editExpenseForm.isFixed || false}
                         onChange={(e) =>
                           setEditExpenseForm({
                             ...editExpenseForm,
