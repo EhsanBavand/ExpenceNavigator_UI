@@ -300,17 +300,19 @@ export default function ExpenseManager() {
 
     try {
       await updateCategory(editCategoryItem.id, {
-        id: editCategoryItem.id, // required by your API
+        id: editCategoryItem.id,
         name: editCategoryName,
+        budget: editCategoryItem.budget, // <-- include budget
         createdDate: editCategoryItem.createdDate,
         isActive: editCategoryItem.isActive,
         userId: editCategoryItem.userId,
       });
 
-      // update local state
       setCategories(
         categories.map((c) =>
-          c.id === editCategoryItem.id ? { ...c, name: editCategoryName } : c
+          c.id === editCategoryItem.id
+            ? { ...c, name: editCategoryName, budget: editCategoryItem.budget }
+            : c
         )
       );
 
@@ -460,18 +462,14 @@ export default function ExpenseManager() {
                     onChange={(e) => setCategoryName(e.target.value)}
                     required
                   />
-
-                  {/* Show budget only for first/default category if needed */}
-                  {categories.length === 0 && (
-                    <input
-                      type="number"
-                      className="form-control mb-2"
-                      placeholder="Budget"
-                      value={categoryBudget}
-                      onChange={(e) => setCategoryBudget(e.target.value)}
-                    />
-                  )}
-
+                  <input
+                    type="number"
+                    className="form-control mb-2"
+                    placeholder="Budget"
+                    value={categoryBudget}
+                    onChange={(e) => setCategoryBudget(e.target.value)}
+                    min="0"
+                  />
                   <button className="btn btn-primary w-100">
                     Add Category
                   </button>
@@ -1038,9 +1036,21 @@ export default function ExpenseManager() {
               <div className="modal-body">
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control mb-2"
                   value={editCategoryName}
                   onChange={(e) => setEditCategoryName(e.target.value)}
+                />
+                <input
+                  type="number"
+                  className="form-control"
+                  value={editCategoryItem?.budget || 0}
+                  onChange={(e) =>
+                    setEditCategoryItem({
+                      ...editCategoryItem,
+                      budget: parseFloat(e.target.value),
+                    })
+                  }
+                  min="0"
                 />
               </div>
               <div className="modal-footer">

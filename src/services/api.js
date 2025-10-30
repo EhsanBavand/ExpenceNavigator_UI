@@ -118,52 +118,139 @@ export async function deleteSource(id) {
 
 // ----------------- Category API -----------------
 
-// Get all categories for a user
+// // Get all categories for a user
+// export const getCategories = async (userId) => {
+//   const res = await axios.get(`${API_BASE_URL}/Category?userId=${userId}`);
+//   return res.data;
+// };
+
+// // Get a single category by Id
+// export const getCategoryById = async (id) => {
+//   try {
+//     const response = await axios.get(`${API_BASE_URL}/Category/${id}`);
+//     return response.data;
+//   } catch (error) {
+//     console.error(`Error fetching category ${id}:`, error);
+//     throw error;
+//   }
+// };
+
+// // Create a new category (with budget and isDefault)
+// export const createCategory = async (category) => {
+//   try {
+//     const response = await axios.post(`${API_BASE_URL}/Category`, category);
+//     // category object can have: name, userId, isActive, budget, isDefault
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error creating category:", error);
+//     throw error;
+//   }
+// };
+
+// // Update a category (with budget and isDefault)
+// export const updateCategory = async (id, category) => {
+//   // category object can have: name, userId, isActive, budget, isDefault
+//   console.log("Category ID:", id);
+//   console.log("Category data:", category);
+
+//   const response = await axios.put(`${API_BASE_URL}/Category/${id}`, category);
+//   console.log("Update response:", response.data);
+
+//   return response.data;
+// };
+
+// // Delete a category
+// export const deleteCategory = async (id) => {
+//   try {
+//     const response = await axios.delete(`${API_BASE_URL}/Category/${id}`);
+//     return response.status === 204;
+//   } catch (error) {
+//     console.error(`Error deleting category ${id}:`, error);
+//     throw error;
+//   }
+// };
+
+// ----------------- Category API -----------------
+
+// ✅ Get all categories for a user
 export const getCategories = async (userId) => {
-  const res = await axios.get(`${API_BASE_URL}/Category?userId=${userId}`);
+  const res = await axios.get(`${API_BASE_URL}/Category/GetAllCategories`, {
+    params: { userId },
+  });
   return res.data;
 };
 
-// Get a single category by Id
-export const getCategoryById = async (id) => {
+// ✅ Get a single category by Id
+export const getCategoryById = async (id, userId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/Category/${id}`);
-    return response.data;
+    const res = await axios.get(
+      `${API_BASE_URL}/Category/GetByCategory/${id}`,
+      {
+        params: { userId },
+      }
+    );
+    return res.data;
   } catch (error) {
     console.error(`Error fetching category ${id}:`, error);
     throw error;
   }
 };
 
-// Create a new category (with budget and isDefault)
-export const createCategory = async (category) => {
+// ✅ Create a new category
+export const createCategory = async (userId, category) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/Category`, category);
-    // category object can have: name, userId, isActive, budget, isDefault
-    return response.data;
+    const res = await axios.post(
+      `${API_BASE_URL}/Category/AddCategory`,
+      category,
+      { params: { userId } }
+    );
+    return res.data;
   } catch (error) {
     console.error("Error creating category:", error);
     throw error;
   }
 };
 
-// Update a category (with budget and isDefault)
-export const updateCategory = async (id, category) => {
-  // category object can have: name, userId, isActive, budget, isDefault
-  console.log("Category ID:", id);
-  console.log("Category data:", category);
-
-  const response = await axios.put(`${API_BASE_URL}/Category/${id}`, category);
-  console.log("Update response:", response.data);
-
-  return response.data;
+// ✅ Update a category (name, budget, etc.)
+export const updateCategory = async (id, userId, category) => {
+  try {
+    const res = await axios.put(
+      `${API_BASE_URL}/Category/updateCategory/${id}`,
+      category,
+      { params: { userId } }
+    );
+    return res.data;
+  } catch (error) {
+    console.error(`Error updating category ${id}:`, error);
+    throw error;
+  }
 };
 
-// Delete a category
-export const deleteCategory = async (id) => {
+// ✅ Update only the budget
+export const updateCategoryBudget = async (id, userId, budget) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/Category/${id}`);
-    return response.status === 204;
+    const res = await axios.put(
+      `${API_BASE_URL}/Category/updateBudget/${id}`,
+      budget,
+      { params: { userId }, headers: { "Content-Type": "application/json" } }
+    );
+    return res.data;
+  } catch (error) {
+    console.error(`Error updating budget for category ${id}:`, error);
+    throw error;
+  }
+};
+
+// ✅ Delete a category
+export const deleteCategory = async (id, userId) => {
+  try {
+    const res = await axios.delete(
+      `${API_BASE_URL}/Category/DeleteCategory/${id}`,
+      {
+        params: { userId },
+      }
+    );
+    return res.status === 204;
   } catch (error) {
     console.error(`Error deleting category ${id}:`, error);
     throw error;
