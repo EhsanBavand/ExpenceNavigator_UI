@@ -141,7 +141,6 @@ export default function ExpenseManager() {
       name: categoryName,
       userId,
       isActive: true,
-      // isDefault: categories.length === 0, // first category is default
       budget: categoryBudget ? parseFloat(categoryBudget) : 0, // optional
     };
 
@@ -298,15 +297,17 @@ export default function ExpenseManager() {
   const saveEditCategory = async () => {
     if (!editCategoryItem) return;
 
+    const payload = {
+      id: editCategoryItem.id,
+      name: editCategoryName,
+      budget: editCategoryItem.budget,
+      createdDate: editCategoryItem.createdDate,
+      isActive: editCategoryItem.isActive,
+      userId: editCategoryItem.userId,
+    };
+
     try {
-      await updateCategory(editCategoryItem.id, {
-        id: editCategoryItem.id,
-        name: editCategoryName,
-        budget: editCategoryItem.budget, // <-- include budget
-        createdDate: editCategoryItem.createdDate,
-        isActive: editCategoryItem.isActive,
-        userId: editCategoryItem.userId,
-      });
+      await updateCategory(editCategoryItem.id, payload);
 
       setCategories(
         categories.map((c) =>
@@ -718,7 +719,7 @@ export default function ExpenseManager() {
                     ))}
                     {categories.length === 0 && (
                       <tr>
-                        <td colSpan={2} className="text-center">
+                        <td colSpan={3} className="text-center">
                           No categories
                         </td>
                       </tr>
@@ -1043,7 +1044,7 @@ export default function ExpenseManager() {
                 <input
                   type="number"
                   className="form-control"
-                  value={editCategoryItem?.budget || 0}
+                  value={editCategoryItem?.budget ?? 0}
                   onChange={(e) =>
                     setEditCategoryItem({
                       ...editCategoryItem,

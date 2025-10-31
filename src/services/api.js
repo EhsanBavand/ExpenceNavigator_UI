@@ -197,48 +197,51 @@ export const getCategoryById = async (id, userId) => {
 };
 
 // ✅ Create a new category
-export const createCategory = async (userId, category) => {
+export const createCategory = async (category) => {
   try {
     const res = await axios.post(
       `${API_BASE_URL}/Category/AddCategory`,
-      category,
-      { params: { userId } }
+      category, // body contains category object
+      {
+        headers: { "Content-Type": "application/json" },
+      }
     );
     return res.data;
   } catch (error) {
-    console.error("Error creating category:", error);
+    console.error(
+      "Error creating category:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
 
 // ✅ Update a category (name, budget, etc.)
-export const updateCategory = async (id, userId, category) => {
+export const updateCategory = async (id, data) => {
   try {
     const res = await axios.put(
       `${API_BASE_URL}/Category/updateCategory/${id}`,
-      category,
-      { params: { userId } }
+      data
     );
     return res.data;
   } catch (error) {
-    console.error(`Error updating category ${id}:`, error);
+    console.error("Error updating category:", error);
     throw error;
   }
 };
 
 // ✅ Update only the budget
 export const updateCategoryBudget = async (id, userId, budget) => {
-  try {
-    const res = await axios.put(
-      `${API_BASE_URL}/Category/updateBudget/${id}`,
-      budget,
-      { params: { userId }, headers: { "Content-Type": "application/json" } }
-    );
-    return res.data;
-  } catch (error) {
-    console.error(`Error updating budget for category ${id}:`, error);
-    throw error;
-  }
+  const response = await axios.put(
+    `${API_BASE_URL}/Category/updateBudget/${id}`,
+    budget, // ✅ sends decimal in body
+    {
+      params: { userId },
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  return response.data;
 };
 
 // ✅ Delete a category
