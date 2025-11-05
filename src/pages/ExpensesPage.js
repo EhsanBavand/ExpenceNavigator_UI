@@ -89,8 +89,9 @@ export default function ExpenseManager() {
     isFixed: false,
   });
   const [editExpenseItem, setEditExpenseItem] = useState(null); // used by saveEditExpense
-
   const [expenses, setExpenses] = useState([]);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [year, month] = selectedDate.split("-");
 
   // Decode JWT to get userId
   useEffect(() => {
@@ -140,8 +141,11 @@ export default function ExpenseManager() {
     const payload = {
       name: categoryName,
       userId,
+      budget: categoryBudget ? parseFloat(categoryBudget) : 0,
+      isRecurring,
+      month: parseInt(month),
+      year: parseInt(year),
       isActive: true,
-      budget: categoryBudget ? parseFloat(categoryBudget) : 0, // optional
     };
 
     try {
@@ -455,6 +459,7 @@ export default function ExpenseManager() {
               {/* Category Form */}
               {formTab === "category" && (
                 <form onSubmit={handleAddCategory}>
+                  {/* Category Name */}
                   <input
                     type="text"
                     className="form-control mb-2"
@@ -463,6 +468,8 @@ export default function ExpenseManager() {
                     onChange={(e) => setCategoryName(e.target.value)}
                     required
                   />
+
+                  {/* Budget */}
                   <input
                     type="number"
                     className="form-control mb-2"
@@ -470,7 +477,23 @@ export default function ExpenseManager() {
                     value={categoryBudget}
                     onChange={(e) => setCategoryBudget(e.target.value)}
                     min="0"
+                    required
                   />
+
+                  {/* ✅ Is Recurring */}
+                  <div className="form-check mb-3">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="isRecurring"
+                      checked={isRecurring}
+                      onChange={(e) => setIsRecurring(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="isRecurring">
+                      Is Recurring
+                    </label>
+                  </div>
+
                   <button className="btn btn-primary w-100">
                     Add Category
                   </button>
@@ -693,6 +716,7 @@ export default function ExpenseManager() {
                     <tr>
                       <th>Name</th>
                       <th>Budget</th>
+                      <th>Recurring</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -701,6 +725,7 @@ export default function ExpenseManager() {
                       <tr key={cat.id}>
                         <td>{cat.name}</td>
                         <td>{cat.budget}</td>
+                        <td>{cat.isRecurring ? "Yes" : "No"}</td>
                         <td>
                           <button
                             className="btn btn-sm btn-primary me-2"
@@ -1007,7 +1032,7 @@ export default function ExpenseManager() {
                             <FaTrash
                               className="text-danger"
                               style={{ cursor: "pointer" }}
-                              onClick={() => handleDelete(exp.id)}
+                              onClick={() => handleDelete(exp.id, "expense")}
                             />
                           </td>
                         </tr>
@@ -1034,16 +1059,20 @@ export default function ExpenseManager() {
                   onClick={() => setEditCategoryModalOpen(false)}
                 ></button>
               </div>
+
               <div className="modal-body">
+                {/* ✅ Category Name */}
                 <input
                   type="text"
                   className="form-control mb-2"
                   value={editCategoryName}
                   onChange={(e) => setEditCategoryName(e.target.value)}
                 />
+
+                {/* ✅ Budget */}
                 <input
                   type="number"
-                  className="form-control"
+                  className="form-control mb-3"
                   value={editCategoryItem?.budget ?? 0}
                   onChange={(e) =>
                     setEditCategoryItem({
@@ -1053,7 +1082,27 @@ export default function ExpenseManager() {
                   }
                   min="0"
                 />
+
+                {/* ✅ Is Recurring */}
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="editIsRecurring"
+                    checked={editCategoryItem?.isRecurring ?? true}
+                    onChange={(e) =>
+                      setEditCategoryItem({
+                        ...editCategoryItem,
+                        isRecurring: e.target.checked,
+                      })
+                    }
+                  />
+                  <label className="form-check-label" htmlFor="editIsRecurring">
+                    Is Recurring
+                  </label>
+                </div>
               </div>
+
               <div className="modal-footer">
                 <button
                   className="btn btn-secondary"
@@ -1061,6 +1110,8 @@ export default function ExpenseManager() {
                 >
                   Cancel
                 </button>
+
+                {/* ✅ Save button */}
                 <button className="btn btn-primary" onClick={saveEditCategory}>
                   Save
                 </button>

@@ -482,7 +482,7 @@ const IncomePage = () => {
                 <th>Source</th>
                 <th>Amount</th>
                 <th>Recurring</th>
-                <th>Estimated</th>
+                {/* <th>Estimated</th> */}
                 <th>Frequency</th>
                 <th>Description</th>
                 <th>Actions</th>
@@ -503,7 +503,7 @@ const IncomePage = () => {
                     <td>{income.sourceType}</td>
                     <td>${income.amount.toFixed(2)}</td>
                     <td>{income.isRecurring ? "Yes" : "No"}</td>
-                    <td>{income.isEstimated ? "Yes" : "No"}</td>
+                    {/* <td>{income.isEstimated ? "Yes" : "No"}</td> */}
                     <td>{income.frequency}</td>
                     <td>{income.description}</td>
                     <td>
@@ -618,7 +618,7 @@ const IncomePage = () => {
                 onChange={handleFormChange}
               />
             </Form.Group>
-            <Form.Group className="mb-3">
+            {/* <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
                 label="Is Estimated?"
@@ -626,7 +626,7 @@ const IncomePage = () => {
                 checked={formData.isEstimated}
                 onChange={handleFormChange}
               />
-            </Form.Group>
+            </Form.Group> */}
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
