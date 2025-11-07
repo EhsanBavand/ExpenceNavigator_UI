@@ -119,7 +119,7 @@ export default function ExpenseManager() {
   const fetchData = async () => {
     try {
       const [catRes, subRes, placeRes, expRes] = await Promise.all([
-        getCategories(userId),
+        getCategories(userId, month, year),
         getSubCategories(userId),
         getPlaces(userId),
         getExpenses(userId),
@@ -138,18 +138,14 @@ export default function ExpenseManager() {
     e.preventDefault();
     if (!categoryName || !userId) return;
 
-    const payload = {
-      name: categoryName,
-      userId,
-      budget: categoryBudget ? parseFloat(categoryBudget) : 0,
-      isRecurring,
-      month: parseInt(month),
-      year: parseInt(year),
-      isActive: true,
-    };
-
     try {
-      const res = await createCategory(payload);
+      const res = await createCategory(
+        userId,
+        categoryName,
+        categoryBudget ? parseFloat(categoryBudget) : 0,
+        isRecurring
+      );
+
       setCategories([...categories, res]);
       setCategoryName("");
       setCategoryBudget("");

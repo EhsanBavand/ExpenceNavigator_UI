@@ -188,10 +188,14 @@ export const getCategoryById = async (userId, id, month, year) => {
 
 // Pass userId explicitly for POST
 export const createCategory = async (userId, name, budget, isRecurring) => {
-  const payload = { userId, name, budget, isRecurring };
-  const res = await axios.post(`${API_BASE_URL}/Category`, payload, {
-    headers: { "Content-Type": "application/json" },
-  });
+  // const payload = { userId, name, budget, isRecurring };
+  // const res = await axios.post(`${API_BASE_URL}/Category`, payload, {
+  //   headers: { "Content-Type": "application/json" },
+  // });
+  const encodedName = encodeURIComponent(name); // Important!
+  const res = await axios.post(
+    `${API_BASE_URL}/Category/${userId}/${encodedName}/${budget}/${isRecurring}`
+  );
   return res.data;
 };
 
