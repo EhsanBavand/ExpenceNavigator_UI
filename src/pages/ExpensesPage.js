@@ -238,25 +238,67 @@ export default function ExpenseManager() {
     });
   };
 
-  const handleDelete = async (id, type) => {
-    try {
-      if (type === "category") await deleteCategory(id);
-      if (type === "subCategory") await deleteSubCategory(id);
-      if (type === "place") await deletePlace(id);
-      if (type === "expense") await deleteExpense(id);
+  // const handleDelete = async (id, type) => {
+  //   try {
+  //     if (type === "category") await deleteCategory(id);
+  //     if (type === "subCategory") await deleteSubCategory(id);
+  //     if (type === "place") await deletePlace(id);
+  //     if (type === "expense") await deleteExpense(id);
 
-      if (type === "category")
-        setCategories(categories.filter((c) => c.id !== id));
-      if (type === "subCategory")
-        setSubCategories(subCategories.filter((sc) => sc.id !== id));
-      if (type === "place") setPlaces(places.filter((p) => p.id !== id));
-      if (type === "expense")
-        setExpenses(expenses.filter((exp) => exp.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed");
+  //     if (type === "category")
+  //       setCategories(categories.filter((c) => c.id !== id));
+  //     if (type === "subCategory")
+  //       setSubCategories(subCategories.filter((sc) => sc.id !== id));
+  //     if (type === "place") setPlaces(places.filter((p) => p.id !== id));
+  //     if (type === "expense")
+  //       setExpenses(expenses.filter((exp) => exp.id !== id));
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Delete failed");
+  //   }
+  // };
+
+const handleDelete = async (id, type) => {
+  if (!id || !userId) return;
+
+  try {
+    switch (type) {
+      case "category":
+        await deleteCategory(id);
+        const updatedCategories = await getCategories(userId, month, year);
+        setCategories(updatedCategories);
+        break;
+
+      case "subCategory":
+        await deleteSubCategory(id);
+        const updatedSubCategories = await getSubCategories(userId);
+        setSubCategories(updatedSubCategories);
+        break;
+
+      case "place":
+        await deletePlace(id);
+        const updatedPlaces = await getPlaces(userId);
+        setPlaces(updatedPlaces);
+        break;
+
+      case "expense":
+        await deleteExpense(id);
+        const updatedExpenses = await getExpenses(userId);
+        setExpenses(updatedExpenses);
+        break;
+
+      default:
+        console.warn("Unknown type", type);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Delete failed");
+  }
+};
+
+
+
+
   // ----------------- Edit Handlers -----------------
   const openEditCategoryModal = (cat) => {
     setEditCategoryItem(cat);
@@ -723,18 +765,8 @@ export default function ExpenseManager() {
                         <td>{cat.budget}</td>
                         <td>{cat.isRecurring ? "Yes" : "No"}</td>
                         <td>
-                          <button
-                            className="btn btn-sm btn-primary me-2"
-                            onClick={() => openEditCategoryModal(cat)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(cat.id, "category")}
-                          >
-                            Delete
-                          </button>
+                          <button className="btn btn-sm btn-primary me-2" onClick={() => openEditCategoryModal(cat)} > Edit </button>
+                          <button className="btn btn-sm btn-danger" onClick={() => handleDelete(cat.catId, "category")}> Delete </button>
                         </td>
                       </tr>
                     ))}

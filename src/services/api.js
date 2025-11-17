@@ -206,182 +206,196 @@ export const updateCategory = async (categoryDto) => {
   return res.data;
 };
 
-export const deleteCategory = async (userId, id) => {
-  const res = await axios.delete(`${API_BASE_URL}/Category/${userId}/${id}`);
-  return res.status === 200 || res.status === 204;
-};
-
-// =====================
-// SubCategories
-// =====================
-
-// ----------------- SubCategory API -----------------
-export const getSubCategoryById = async (id) => {
+export const deleteCategory = async (id) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}SubCategory/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching subcategory ${id}:`, error);
-    throw error;
+    const res = await axios.delete(`${API_BASE_URL}/Category/${id}`);
+    return res.status === 204;
   }
-};
-
-export const getSubCategoriesByCategory = async (categoryId) => {
-  try {
-    const response = await axios.get(
-      `${API_BASE_URL}SubCategory/by-category/${categoryId}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error(
-      `Error fetching subcategories for category ${categoryId}:`,
-      error
-    );
+  catch (error) {
+    console.error(`Error deleting category ${id}:`, error);
     throw error;
-  }
-};
 
-export const getSubCategories = async (userId) => {
-  const res = await axios.get(`${API_BASE_URL}/SubCategory?userId=${userId}`);
-  return res.data;
-};
+    //  try {
+    //   const response = await axios.delete(`${API_BASE_URL}/SubCategory/${id}`);
+    //   return response.status === 204;
+    // } catch (error) {
+    //   console.error(`Error deleting subcategory ${id}:`, error);
+    //   throw error;
+    // }
+  };
+}
 
-export const createSubCategory = async (subCategory) => {
-  const res = await axios.post(`${API_BASE_URL}/SubCategory`, subCategory);
-  return res.data;
-};
+  // =====================
+  // SubCategories
+  // =====================
 
-export const updateSubCategory = async (id, subcategory) => {
-  try {
-    const response = await axios.put(
-      `${API_BASE_URL}/SubCategory/${id}`,
-      subcategory
-    );
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating subcategory ${id}:`, error);
-    throw error;
-  }
-};
+  // ----------------- SubCategory API -----------------
+  export const getSubCategoryById = async (id) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}SubCategory/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching subcategory ${id}:`, error);
+      throw error;
+    }
+  };
 
-export const deleteSubCategory = async (id) => {
-  try {
-    const response = await axios.delete(`${API_BASE_URL}/SubCategory/${id}`);
-    return response.status === 204;
-  } catch (error) {
-    console.error(`Error deleting subcategory ${id}:`, error);
-    throw error;
-  }
-};
+  export const getSubCategoriesByCategory = async (categoryId) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}SubCategory/by-category/${categoryId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Error fetching subcategories for category ${categoryId}:`,
+        error
+      );
+      throw error;
+    }
+  };
 
-// =====================
-// Places
-// =====================
+  export const getSubCategories = async (userId) => {
+    const res = await axios.get(`${API_BASE_URL}/SubCategory?userId=${userId}`);
+    return res.data;
+  };
 
-// ----------------- Place API -----------------
-export const getPlaceById = async (id) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}Place/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching place ${id}:`, error);
-    throw error;
-  }
-};
+  export const createSubCategory = async (subCategory) => {
+    const res = await axios.post(`${API_BASE_URL}/SubCategory`, subCategory);
+    return res.data;
+  };
 
-export const getPlaces = async (userId) => {
-  const res = await axios.get(`${API_BASE_URL}/Place?userId=${userId}`);
-  return res.data;
-};
+  export const updateSubCategory = async (id, subcategory) => {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/SubCategory/${id}`,
+        subcategory
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating subcategory ${id}:`, error);
+      throw error;
+    }
+  };
 
-export const createPlace = async (place) => {
-  const res = await axios.post(`${API_BASE_URL}/Place`, place);
-  return res.data;
-};
+  export const deleteSubCategory = async (id) => {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/SubCategory/${id}`);
+      return response.status === 204;
+    } catch (error) {
+      console.error(`Error deleting subcategory ${id}:`, error);
+      throw error;
+    }
+  };
 
-export const updatePlace = async (id, place) => {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/Place/${id}`, place);
+  // =====================
+  // Places
+  // =====================
 
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating place ${id}:`, error);
-    throw error;
-  }
-};
+  // ----------------- Place API -----------------
+  export const getPlaceById = async (id) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}Place/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching place ${id}:`, error);
+      throw error;
+    }
+  };
 
-export const deletePlace = async (id) => {
-  try {
-    const response = await axios.delete(`${API_BASE_URL}/Place/${id}`);
+  export const getPlaces = async (userId) => {
+    const res = await axios.get(`${API_BASE_URL}/Place?userId=${userId}`);
+    return res.data;
+  };
 
-    return response.status === 200;
-  } catch (error) {
-    console.error(`Error deleting place ${id}:`, error);
-    throw error;
-  }
-};
+  export const createPlace = async (place) => {
+    const res = await axios.post(`${API_BASE_URL}/Place`, place);
+    return res.data;
+  };
 
-export const getPlacesForDropdown = async (
-  categoryId = null,
-  subCategoryId = null
-) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}Place/placesdropdown`, {
-      params: { categoryId, subCategoryId },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching places for dropdown:", error);
-    throw error;
-  }
-};
+  export const updatePlace = async (id, place) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/Place/${id}`, place);
 
-// =====================
-// Expense
-// =====================
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating place ${id}:`, error);
+      throw error;
+    }
+  };
 
-// ----------------- Expense API -----------------
-export const getExpenses = async (userId) => {
-  const res = await axios.get(`${API_BASE_URL}/Expense?userId=${userId}`);
-  return res.data;
-};
+  export const deletePlace = async (id) => {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/Place/${id}`);
 
-export const getExpenseById = async (id) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/Expense/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching expense ${id}:`, error);
-    throw error;
-  }
-};
+      return response.status === 200;
+    } catch (error) {
+      console.error(`Error deleting place ${id}:`, error);
+      throw error;
+    }
+  };
 
-export const createExpense = async (expense) => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/Expense`, expense);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating expense:", error);
-    throw error;
-  }
-};
+  export const getPlacesForDropdown = async (
+    categoryId = null,
+    subCategoryId = null
+  ) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}Place/placesdropdown`, {
+        params: { categoryId, subCategoryId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching places for dropdown:", error);
+      throw error;
+    }
+  };
 
-export const updateExpense = async (id, expense) => {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/Expense/${id}`, expense);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating expense ${id}:`, error);
-    throw error;
-  }
-};
+  // =====================
+  // Expense
+  // =====================
 
-export const deleteExpense = async (id) => {
-  try {
-    const response = await axios.delete(`${API_BASE_URL}/Expense/${id}`);
-    return response.status === 200;
-  } catch (error) {
-    console.error(`Error deleting expense ${id}:`, error);
-    throw error;
-  }
-};
+  // ----------------- Expense API -----------------
+  export const getExpenses = async (userId) => {
+    const res = await axios.get(`${API_BASE_URL}/Expense?userId=${userId}`);
+    return res.data;
+  };
+
+  export const getExpenseById = async (id) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/Expense/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching expense ${id}:`, error);
+      throw error;
+    }
+  };
+
+  export const createExpense = async (expense) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/Expense`, expense);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating expense:", error);
+      throw error;
+    }
+  };
+
+  export const updateExpense = async (id, expense) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/Expense/${id}`, expense);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating expense ${id}:`, error);
+      throw error;
+    }
+  };
+
+  export const deleteExpense = async (id) => {
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/Expense/${id}`);
+      return response.status === 200;
+    } catch (error) {
+      console.error(`Error deleting expense ${id}:`, error);
+      throw error;
+    }
+  };
