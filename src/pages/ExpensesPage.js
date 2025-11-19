@@ -258,51 +258,54 @@ export default function ExpenseManager() {
   //   }
   // };
 
-const handleDelete = async (id, type) => {
-  if (!id || !userId) return;
+  const handleDelete = async (id, type) => {
+    if (!id || !userId) return;
 
-  try {
-    switch (type) {
-      case "category":
-        await deleteCategory(id);
-        const updatedCategories = await getCategories(userId, month, year);
-        setCategories(updatedCategories);
-        break;
+    try {
+      switch (type) {
+        case "category":
+          await deleteCategory(id);
+          const updatedCategories = await getCategories(userId, month, year);
+          setCategories(updatedCategories);
+          break;
 
-      case "subCategory":
-        await deleteSubCategory(id);
-        const updatedSubCategories = await getSubCategories(userId);
-        setSubCategories(updatedSubCategories);
-        break;
+        case "subCategory":
+          await deleteSubCategory(id);
+          const updatedSubCategories = await getSubCategories(userId);
+          setSubCategories(updatedSubCategories);
+          break;
 
-      case "place":
-        await deletePlace(id);
-        const updatedPlaces = await getPlaces(userId);
-        setPlaces(updatedPlaces);
-        break;
+        case "place":
+          await deletePlace(id);
+          const updatedPlaces = await getPlaces(userId);
+          setPlaces(updatedPlaces);
+          break;
 
-      case "expense":
-        await deleteExpense(id);
-        const updatedExpenses = await getExpenses(userId);
-        setExpenses(updatedExpenses);
-        break;
+        case "expense":
+          await deleteExpense(id);
+          const updatedExpenses = await getExpenses(userId);
+          setExpenses(updatedExpenses);
+          break;
 
-      default:
-        console.warn("Unknown type", type);
+        default:
+          console.warn("Unknown type", type);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
     }
-  } catch (err) {
-    console.error(err);
-    alert("Delete failed");
-  }
-};
-
-
-
+  };
 
   // ----------------- Edit Handlers -----------------
-  const openEditCategoryModal = (cat) => {
-    setEditCategoryItem(cat);
-    setEditCategoryName(cat.name);
+  // const openEditCategoryModal = (cat) => {
+  //   setEditCategoryItem(cat);
+  //   setEditCategoryName(cat.name);
+  //   setEditCategoryModalOpen(true);
+  // };
+
+  const openEditCategoryModal = (category) => {
+    setEditCategoryItem(category); // includes id, userId, month, year
+    setEditCategoryName(category.name);
     setEditCategoryModalOpen(true);
   };
 
@@ -335,22 +338,24 @@ const handleDelete = async (id, type) => {
     });
     setEditExpenseModalOpen(true);
   };
-
   const saveEditCategory = async () => {
     if (!editCategoryItem) return;
 
     const payload = {
-      id: editCategoryItem.id,
+      catId: editCategoryItem.catId, // must exist now
+      userId: editCategoryItem.userId,
       name: editCategoryName,
       budget: editCategoryItem.budget,
-      createdDate: editCategoryItem.createdDate,
+      isRecurring: editCategoryItem.isRecurring,
       isActive: editCategoryItem.isActive,
-      userId: editCategoryItem.userId,
+      month: editCategoryItem.month,
+      year: editCategoryItem.year,
     };
 
-    try {
-      await updateCategory(editCategoryItem.id, payload);
+    console.log("Payload sent to backend:", payload);
 
+    try {
+      await updateCategory(payload);
       setCategories(
         categories.map((c) =>
           c.id === editCategoryItem.id
@@ -358,7 +363,6 @@ const handleDelete = async (id, type) => {
             : c
         )
       );
-
       setEditCategoryModalOpen(false);
     } catch (err) {
       console.error("Failed to update category", err);
@@ -765,11 +769,22 @@ const handleDelete = async (id, type) => {
                         <td>{cat.budget}</td>
                         <td>{cat.isRecurring ? "Yes" : "No"}</td>
                         <td>
-                          <button className="btn btn-sm btn-primary me-2" onClick={() => openEditCategoryModal(cat)} > Edit </button>
-                          <button className="btn btn-sm btn-danger" onClick={() => handleDelete(cat.catId, "category")}> Delete </button>
+                          <button
+                            className="btn btn-sm btn-primary me-2"
+                            onClick={() => openEditCategoryModal(cat)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(cat.catId, "category")}
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))}
+
                     {categories.length === 0 && (
                       <tr>
                         <td colSpan={3} className="text-center">
@@ -1089,7 +1104,7 @@ const handleDelete = async (id, type) => {
               </div>
 
               <div className="modal-body">
-                {/* ✅ Category Name */}
+                {/* Category Name */}
                 <input
                   type="text"
                   className="form-control mb-2"
@@ -1097,7 +1112,7 @@ const handleDelete = async (id, type) => {
                   onChange={(e) => setEditCategoryName(e.target.value)}
                 />
 
-                {/* ✅ Budget */}
+                {/* Budget */}
                 <input
                   type="number"
                   className="form-control mb-3"
@@ -1111,13 +1126,13 @@ const handleDelete = async (id, type) => {
                   min="0"
                 />
 
-                {/* ✅ Is Recurring */}
+                {/* Is Recurring */}
                 <div className="form-check">
                   <input
                     type="checkbox"
                     className="form-check-input"
                     id="editIsRecurring"
-                    checked={editCategoryItem?.isRecurring ?? true}
+                    checked={editCategoryItem?.isRecurring ?? false}
                     onChange={(e) =>
                       setEditCategoryItem({
                         ...editCategoryItem,
@@ -1129,6 +1144,9 @@ const handleDelete = async (id, type) => {
                     Is Recurring
                   </label>
                 </div>
+
+                {/* Hidden ID for safety */}
+                <input type="hidden" value={editCategoryItem?.id} />
               </div>
 
               <div className="modal-footer">
@@ -1139,7 +1157,7 @@ const handleDelete = async (id, type) => {
                   Cancel
                 </button>
 
-                {/* ✅ Save button */}
+                {/* Save */}
                 <button className="btn btn-primary" onClick={saveEditCategory}>
                   Save
                 </button>
