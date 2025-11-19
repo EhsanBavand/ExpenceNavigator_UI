@@ -340,7 +340,7 @@ const handleDelete = async (id, type) => {
     if (!editCategoryItem) return;
 
     const payload = {
-      id: editCategoryItem.id,
+      id: editCategoryItem.catId,
       name: editCategoryName,
       budget: editCategoryItem.budget,
       createdDate: editCategoryItem.createdDate,
