@@ -238,6 +238,27 @@ export default function ExpenseManager() {
     });
   };
 
+  // ----------------- Delete Handlers -----------------
+  // const handleDelete = async (id, type) => {
+  //   try {
+  //     if (type === "category") await deleteCategory(id);
+  //     if (type === "subCategory") await deleteSubCategory(id);
+  //     if (type === "place") await deletePlace(id);
+  //     if (type === "expense") await deleteExpense(id);
+
+  //     if (type === "category")
+  //       setCategories(categories.filter((c) => c.id !== id));
+  //     if (type === "subCategory")
+  //       setSubCategories(subCategories.filter((sc) => sc.id !== id));
+  //     if (type === "place") setPlaces(places.filter((p) => p.id !== id));
+  //     if (type === "expense")
+  //       setExpenses(expenses.filter((exp) => exp.id !== id));
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Delete failed");
+  //   }
+  // };
+
   const handleDelete = async (id, type) => {
     if (!id || !userId) return;
 
@@ -276,6 +297,13 @@ export default function ExpenseManager() {
     }
   };
 
+  // ----------------- Edit Handlers -----------------
+  // const openEditCategoryModal = (cat) => {
+  //   setEditCategoryItem(cat);
+  //   setEditCategoryName(cat.name);
+  //   setEditCategoryModalOpen(true);
+  // };
+
   const openEditCategoryModal = (category) => {
     setEditCategoryItem(category); // includes id, userId, month, year
     setEditCategoryName(category.name);
@@ -311,12 +339,11 @@ export default function ExpenseManager() {
     });
     setEditExpenseModalOpen(true);
   };
-
   const saveEditCategory = async () => {
     if (!editCategoryItem) return;
 
     const payload = {
-      catId: editCategoryItem.catId,
+      catId: editCategoryItem.catId, // must exist now
       userId: editCategoryItem.userId,
       name: editCategoryName,
       budget: editCategoryItem.budget,

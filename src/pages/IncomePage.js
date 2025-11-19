@@ -31,7 +31,6 @@ const IncomePage = () => {
     description: "",
   });
 
-
   // Source modal state
   const [showSourceModal, setShowSourceModal] = useState(false);
   const [sourceFormData, setSourceFormData] = useState({
@@ -152,7 +151,6 @@ const IncomePage = () => {
     }));
   };
 
-
   const handleShowAddModal = () => {
     setEditingIncome(null);
     setFormData({
@@ -212,7 +210,6 @@ const IncomePage = () => {
       createdDate: editingIncome?.createdDate || new Date().toISOString(),
       modifiedDate: new Date().toISOString(),
     };
-
 
     try {
       if (editingIncome) {
@@ -350,7 +347,6 @@ const IncomePage = () => {
       setError("Failed to save source.");
     }
   };
-
 
   const handleEditSource = (source) => {
     setSourceFormData({
@@ -587,7 +583,6 @@ const IncomePage = () => {
                   </option>
                 ))}
               </Form.Select>
-
             </Form.Group>
 
             <Form.Group className="mb-3">
