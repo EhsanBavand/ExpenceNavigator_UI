@@ -116,6 +116,11 @@ export default function ExpenseManager() {
     fetchData();
   }, [userId]);
 
+  // to log categories whenever they change
+  useEffect(() => {
+    console.log("Categories:", categories);
+  }, [categories]);
+
   const fetchData = async () => {
     try {
       const [catRes, subRes, placeRes, expRes] = await Promise.all([
@@ -155,15 +160,35 @@ export default function ExpenseManager() {
     }
   };
 
+  // const handleAddSubCategory = async (e) => {
+  //   e.preventDefault();
+  //   if (!subCategoryName || !selectedCategory || !userId) return;
+  //   try {
+  //     const res = await createSubCategory({
+  //       name: subCategoryName,
+  //       categoryId: selectedCategory,
+  //       userId,
+  //     });
+  //     setSubCategories([...subCategories, res]);
+  //     setSubCategoryName("");
+  //     setSelectedCategory("");
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Failed to create subcategory");
+  //   }
+  // };
+
   const handleAddSubCategory = async (e) => {
     e.preventDefault();
     if (!subCategoryName || !selectedCategory || !userId) return;
+
     try {
       const res = await createSubCategory({
         name: subCategoryName,
-        categoryId: selectedCategory,
+        categoryId: selectedCategory,  // ✅ this is now the ID, not name
         userId,
       });
+
       setSubCategories([...subCategories, res]);
       setSubCategoryName("");
       setSelectedCategory("");
@@ -172,6 +197,8 @@ export default function ExpenseManager() {
       alert("Failed to create subcategory");
     }
   };
+
+
 
   const handleAddPlace = async (e) => {
     e.preventDefault();
@@ -238,27 +265,6 @@ export default function ExpenseManager() {
     });
   };
 
-  // ----------------- Delete Handlers -----------------
-  // const handleDelete = async (id, type) => {
-  //   try {
-  //     if (type === "category") await deleteCategory(id);
-  //     if (type === "subCategory") await deleteSubCategory(id);
-  //     if (type === "place") await deletePlace(id);
-  //     if (type === "expense") await deleteExpense(id);
-
-  //     if (type === "category")
-  //       setCategories(categories.filter((c) => c.id !== id));
-  //     if (type === "subCategory")
-  //       setSubCategories(subCategories.filter((sc) => sc.id !== id));
-  //     if (type === "place") setPlaces(places.filter((p) => p.id !== id));
-  //     if (type === "expense")
-  //       setExpenses(expenses.filter((exp) => exp.id !== id));
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Delete failed");
-  //   }
-  // };
-
   const handleDelete = async (id, type) => {
     if (!id || !userId) return;
 
@@ -297,13 +303,6 @@ export default function ExpenseManager() {
     }
   };
 
-  // ----------------- Edit Handlers -----------------
-  // const openEditCategoryModal = (cat) => {
-  //   setEditCategoryItem(cat);
-  //   setEditCategoryName(cat.name);
-  //   setEditCategoryModalOpen(true);
-  // };
-
   const openEditCategoryModal = (category) => {
     setEditCategoryItem(category); // includes id, userId, month, year
     setEditCategoryName(category.name);
@@ -325,20 +324,6 @@ export default function ExpenseManager() {
     setEditPlaceModalOpen(true);
   };
 
-  const openEditExpenseModal = (exp) => {
-    setEditExpenseItem(exp);
-    setEditExpenseForm({
-      date: exp.date || "",
-      categoryId: exp.categoryId || "",
-      subCategoryId: exp.subCategoryId || "",
-      placeId: exp.placeId || "",
-      amount: exp.amount || "",
-      paidFor: exp.paidFor || "",
-      note: exp.note || "",
-      isFixed: exp.isFixed || false,
-    });
-    setEditExpenseModalOpen(true);
-  };
   const saveEditCategory = async () => {
     if (!editCategoryItem) return;
 
@@ -542,60 +527,86 @@ export default function ExpenseManager() {
                 <form onSubmit={handleAddSubCategory}>
                   <select
                     className="form-select mb-2"
-                    value={selectedCategory}
+                    value={selectedCategory}       // this should be the ID
                     onChange={(e) => setSelectedCategory(e.target.value)}
+                    required
                   >
-                    <option value="">Choose Category </option>
+                    <option value="">Choose Category</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
+                      <option key={c.catId} value={c.catId}>{c.name}</option>
                     ))}
                   </select>
+
+
                   <input
                     type="text"
                     className="form-control mb-2"
                     placeholder="SubCategory Name"
                     value={subCategoryName}
                     onChange={(e) => setSubCategoryName(e.target.value)}
+                    required
                   />
+
                   <button className="btn btn-primary w-100">
                     Add SubCategory
                   </button>
                 </form>
               )}
 
+
+              {/* Place Form */}
               {/* Place Form */}
               {formTab === "place" && (
                 <form onSubmit={handleAddPlace}>
+                  {/* Category Select */}
                   <select
                     className="form-select mb-2"
                     value={selectedCategoryForPlace}
-                    onChange={(e) =>
-                      setSelectedCategoryForPlace(e.target.value)
-                    }
+                    onChange={(e) => {
+                      setSelectedCategoryForPlace(e.target.value);
+                      setSelectedSubCategoryForPlace(""); // reset subcategory when category changes
+                    }}
+                    required
                   >
-                    <option value="">Choose Category </option>
+                    <option value="">Choose Category</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
+                      <option key={c.catId} value={c.catId}>
                         {c.name}
                       </option>
                     ))}
                   </select>
-                  {/* <select className="form-select mb-2" value={selectedSubCategoryForPlace} onChange={e => setSelectedSubCategoryForPlace(e.target.value)}>
-                    <option value="">Choose SubCategory (Optional) </option>
-                    {subCategories.filter(sc => sc.categoryId === selectedCategoryForPlace).map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
-                  </select> */}
+
+                  {/* SubCategory Select */}
+                  <select
+                    className="form-select mb-2"
+                    value={selectedSubCategoryForPlace}
+                    onChange={(e) => setSelectedSubCategoryForPlace(e.target.value)}
+                    disabled={!selectedCategoryForPlace} // disabled until category is selected
+                  >
+                    <option value="">Choose SubCategory (Optional)</option>
+                    {subCategories
+                      .filter((sc) => sc.categoryId === selectedCategoryForPlace)
+                      .map((sc) => (
+                        <option key={sc.id} value={sc.id}>
+                          {sc.name}
+                        </option>
+                      ))}
+                  </select>
+
+                  {/* Place Name */}
                   <input
                     type="text"
                     className="form-control mb-2"
                     placeholder="Place Name"
                     value={placeName}
                     onChange={(e) => setPlaceName(e.target.value)}
+                    required
                   />
+
                   <button className="btn btn-warning w-100">Add Place</button>
                 </form>
               )}
+
 
               {/* Expense Form */}
               {formTab === "expense" && (
