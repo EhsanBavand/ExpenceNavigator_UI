@@ -101,7 +101,7 @@ export default function ExpenseManager() {
       const decoded = jwtDecode(token);
       const id =
         decoded[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ] ||
         decoded.sub ||
         null;
@@ -160,24 +160,6 @@ export default function ExpenseManager() {
     }
   };
 
-  // const handleAddSubCategory = async (e) => {
-  //   e.preventDefault();
-  //   if (!subCategoryName || !selectedCategory || !userId) return;
-  //   try {
-  //     const res = await createSubCategory({
-  //       name: subCategoryName,
-  //       categoryId: selectedCategory,
-  //       userId,
-  //     });
-  //     setSubCategories([...subCategories, res]);
-  //     setSubCategoryName("");
-  //     setSelectedCategory("");
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Failed to create subcategory");
-  //   }
-  // };
-
   const handleAddSubCategory = async (e) => {
     e.preventDefault();
     if (!subCategoryName || !selectedCategory || !userId) return;
@@ -185,7 +167,7 @@ export default function ExpenseManager() {
     try {
       const res = await createSubCategory({
         name: subCategoryName,
-        categoryId: selectedCategory,  // ✅ this is now the ID, not name
+        categoryId: selectedCategory, // ✅ this is now the ID, not name
         userId,
       });
 
@@ -197,8 +179,6 @@ export default function ExpenseManager() {
       alert("Failed to create subcategory");
     }
   };
-
-
 
   const handleAddPlace = async (e) => {
     e.preventDefault();
@@ -373,10 +353,10 @@ export default function ExpenseManager() {
         subCategories.map((sc) =>
           sc.id === editSubCategoryItem.id
             ? {
-              ...sc,
-              name: editSubCategoryName,
-              categoryId: editSubCategoryParent,
-            }
+                ...sc,
+                name: editSubCategoryName,
+                categoryId: editSubCategoryParent,
+              }
             : sc
         )
       );
@@ -407,11 +387,11 @@ export default function ExpenseManager() {
         places.map((p) =>
           p.id === editPlaceItem.id
             ? {
-              ...p,
-              name: editPlaceName,
-              categoryId: editPlaceCategory,
-              subCategoryId: editPlaceSubCategory,
-            }
+                ...p,
+                name: editPlaceName,
+                categoryId: editPlaceCategory,
+                subCategoryId: editPlaceSubCategory,
+              }
             : p
         )
       );
@@ -527,16 +507,17 @@ export default function ExpenseManager() {
                 <form onSubmit={handleAddSubCategory}>
                   <select
                     className="form-select mb-2"
-                    value={selectedCategory}       // this should be the ID
+                    value={selectedCategory} // this should be the ID
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     required
                   >
                     <option value="">Choose Category</option>
                     {categories.map((c) => (
-                      <option key={c.catId} value={c.catId}>{c.name}</option>
+                      <option key={c.catId} value={c.catId}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
-
 
                   <input
                     type="text"
@@ -553,8 +534,6 @@ export default function ExpenseManager() {
                 </form>
               )}
 
-
-              {/* Place Form */}
               {/* Place Form */}
               {formTab === "place" && (
                 <form onSubmit={handleAddPlace}>
@@ -577,21 +556,24 @@ export default function ExpenseManager() {
                   </select>
 
                   {/* SubCategory Select */}
-                  <select
+                  {/* <select
                     className="form-select mb-2"
                     value={selectedSubCategoryForPlace}
-                    onChange={(e) => setSelectedSubCategoryForPlace(e.target.value)}
-                    disabled={!selectedCategoryForPlace} // disabled until category is selected
+                    onChange={(e) =>
+                      setSelectedSubCategoryForPlace(e.target.value)
+                    }
                   >
                     <option value="">Choose SubCategory (Optional)</option>
                     {subCategories
-                      .filter((sc) => sc.categoryId === selectedCategoryForPlace)
+                      .filter(
+                        (sc) => sc.categoryId === selectedCategoryForPlace
+                      )
                       .map((sc) => (
                         <option key={sc.id} value={sc.id}>
                           {sc.name}
                         </option>
                       ))}
-                  </select>
+                  </select> */}
 
                   {/* Place Name */}
                   <input
@@ -606,7 +588,6 @@ export default function ExpenseManager() {
                   <button className="btn btn-warning w-100">Add Place</button>
                 </form>
               )}
-
 
               {/* Expense Form */}
               {formTab === "expense" && (
@@ -817,7 +798,7 @@ export default function ExpenseManager() {
                       <tr key={sc.id}>
                         <td>{sc.name}</td>
                         <td>
-                          {categories.find((c) => c.id === sc.categoryId)
+                          {categories.find((c) => c.catId === sc.categoryId)
                             ?.name || "-"}
                         </td>
                         <td>
@@ -863,7 +844,7 @@ export default function ExpenseManager() {
                       <tr key={p.id}>
                         <td>{p.name}</td>
                         <td>
-                          {categories.find((c) => c.id === p.categoryId)
+                          {categories.find((c) => c.catId === p.categoryId)
                             ?.name || "-"}
                         </td>
                         {/* <td>{subCategories.find(sc => sc.id === p.subCategoryId)?.name || "-"}</td> */}
