@@ -90,7 +90,11 @@ export default function ExpenseManager() {
   });
   const [editExpenseItem, setEditExpenseItem] = useState(null); // used by saveEditExpense
   const [expenses, setExpenses] = useState([]);
+
   const [isRecurring, setIsRecurring] = useState(false);
+  const [categoryIsRecurring, setCategoryIsRecurring] = useState(false);
+  const [subCategoryIsRecurring, setSubCategoryIsRecurring] = useState(false);
+
   const [year, month] = selectedDate.split("-");
 
   // Decode JWT to get userId
@@ -148,7 +152,7 @@ export default function ExpenseManager() {
         userId,
         categoryName,
         categoryBudget ? parseFloat(categoryBudget) : 0,
-        isRecurring
+        categoryIsRecurring
       );
 
       setCategories([...categories, res]);
@@ -169,6 +173,7 @@ export default function ExpenseManager() {
         name: subCategoryName,
         categoryId: selectedCategory, // ✅ this is now the ID, not name
         userId,
+        isRecurring: subCategoryIsRecurring, // <--- add this
       });
 
       setSubCategories([...subCategories, res]);
@@ -343,6 +348,7 @@ export default function ExpenseManager() {
         name: editSubCategoryName,
         categoryId: editSubCategoryParent,
         createdDate: editSubCategoryItem.createdDate || null,
+        isRecurring: editSubCategoryItem.isRecurring, // or a separate state if editable in modal
       };
 
       console.log("Updating subcategory with payload:", payload);
@@ -488,8 +494,8 @@ export default function ExpenseManager() {
                       type="checkbox"
                       className="form-check-input"
                       id="isRecurring"
-                      checked={isRecurring}
-                      onChange={(e) => setIsRecurring(e.target.checked)}
+                      checked={categoryIsRecurring}
+                      onChange={(e) => setCategoryIsRecurring(e.target.checked)}
                     />
                     <label className="form-check-label" htmlFor="isRecurring">
                       Is Recurring
@@ -528,6 +534,21 @@ export default function ExpenseManager() {
                     required
                   />
 
+                  {/* ✅ Is Recurring */}
+                  <div className="form-check mb-3">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="isRecurring"
+                      checked={subCategoryIsRecurring}
+                      onChange={(e) =>
+                        setSubCategoryIsRecurring(e.target.checked)
+                      }
+                    />
+                    <label className="form-check-label" htmlFor="isRecurring">
+                      Is Recurring
+                    </label>
+                  </div>
                   <button className="btn btn-primary w-100">
                     Add SubCategory
                   </button>

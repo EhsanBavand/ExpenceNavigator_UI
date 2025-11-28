@@ -43,7 +43,7 @@ export const addIncome = async (income) => {
       createdBy: income.createdBy,
       createdDate: new Date().toISOString(),
       modifiedDate: new Date().toISOString(),
-      description: income.description || ""
+      description: income.description || "",
     };
 
     console.log("Payload sent to API:", payload);
@@ -62,8 +62,6 @@ export const addIncome = async (income) => {
   }
 };
 
-
-
 // Update income API call
 export const updateIncome = async (income) => {
   try {
@@ -73,7 +71,7 @@ export const updateIncome = async (income) => {
       date: new Date(income.date).toISOString(),
       createdDate: new Date(income.createdDate).toISOString(),
       modifiedDate: new Date(income.modifiedDate).toISOString(),
-      frequency: income.frequency.toString()
+      frequency: income.frequency.toString(),
     };
 
     console.log("Payload sent to API:", payload);
@@ -94,10 +92,6 @@ export const updateIncome = async (income) => {
     throw error;
   }
 };
-
-
-
-
 
 export const deleteIncome = async (id) => {
   return await axios.delete(`${API_BASE_URL}/income/${id}`);
@@ -184,12 +178,11 @@ export const deleteCategory = async (id) => {
   try {
     const res = await axios.delete(`${API_BASE_URL}/Category/${id}`);
     return res.status === 204;
-  }
-  catch (error) {
+  } catch (error) {
     console.error(`Error deleting category ${id}:`, error);
     throw error;
-  };
-}
+  }
+};
 
 // =====================
 // SubCategories
