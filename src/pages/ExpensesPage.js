@@ -242,18 +242,8 @@ export default function ExpenseManager() {
     }
   };
 
-  // const handleExpenseChange = (e) => {
-  //   const { name, value, type, checked } = e.target;
-  //   setExpenseForm({
-  //     ...expenseForm,
-  //     [name]: type === "checkbox" ? checked : value,
-  //   });
-  // };
-
   const handleExpenseChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    // If category is changed, reset subCategory and place
     if (name === "category") {
       setExpenseForm({
         ...expenseForm,
@@ -268,7 +258,6 @@ export default function ExpenseManager() {
       });
     }
   };
-
 
   const handleDelete = async (id, type) => {
     if (!id || !userId) return;
@@ -617,121 +606,6 @@ export default function ExpenseManager() {
 
               {/* Expense Form */}
               {formTab === "expense" && (
-                // <form onSubmit={handleAddExpense}>
-                //   <div className="row g-2">
-                //     <div className="col-12 col-sm-6">
-                //       <input
-                //         type="date"
-                //         name="date"
-                //         className="form-control"
-                //         value={expenseForm.date || ""}
-                //         onChange={handleExpenseChange}
-                //         required
-                //       />
-                //     </div>
-                //     <div className="col-12 col-sm-6">
-                //       <select
-                //         className="form-select"
-                //         name="category"
-                //         value={expenseForm.category}
-                //         onChange={handleExpenseChange}
-                //         required
-                //       >
-                //         <option value="">Choose a Category</option>
-                //         {categories.map((c) => (
-                //           <option key={c.id} value={c.id}>
-                //             {c.name}
-                //           </option>
-                //         ))}
-                //       </select>
-                //     </div>
-                //     <div className="col-12 col-sm-6">
-                //       <select
-                //         className="form-select"
-                //         name="subCategory"
-                //         value={expenseForm.subCategory || ""}
-                //         onChange={handleExpenseChange}
-                //       >
-                //         <option value="">Choose a SubCategory (optional)</option>
-                //         {subCategories
-                //           .filter((sc) => sc.categoryId === expenseForm.category) // use selected category
-                //           .map((sc) => (
-                //             <option key={sc.id} value={sc.id}>
-                //               {sc.name}
-                //             </option>
-                //           ))}
-                //       </select>
-                //     </div>
-                //     <div className="col-12 col-sm-6">
-                //       <select
-                //         className="form-select"
-                //         name="place"
-                //         value={expenseForm.place || ""}
-                //         onChange={handleExpenseChange} required
-                //       >
-                //         <option value="">Choose a Place</option>
-                //         {places
-                //           .filter((p) => p.categoryId === expenseForm.category) // use selected category
-                //           .map((p) => (
-                //             <option key={p.id} value={p.id}>
-                //               {p.name}
-                //             </option>
-                //           ))}
-                //       </select>
-                //     </div>
-                //     <div className="col-12 col-sm-6">
-                //       <input
-                //         type="number"
-                //         name="amount"
-                //         className="form-control"
-                //         placeholder="Amount"
-                //         value={expenseForm.amount}
-                //         onChange={handleExpenseChange}
-                //         required
-                //       />
-                //     </div>
-                //     <div className="col-12 col-sm-6">
-                //       <input
-                //         type="text"
-                //         name="paidFor"
-                //         className="form-control"
-                //         placeholder="Paid For"
-                //         value={expenseForm.paidFor}
-                //         onChange={handleExpenseChange}
-                //       />
-                //     </div>
-                //     <div className="col-12">
-                //       <textarea
-                //         name="note"
-                //         className="form-control"
-                //         placeholder="Note"
-                //         value={expenseForm.note}
-                //         onChange={handleExpenseChange}
-                //       ></textarea>
-                //     </div>
-                //     <div className="col-12">
-                //       <div className="form-check mb-2">
-                //         <input
-                //           type="checkbox"
-                //           name="isFixed"
-                //           className="form-check-input"
-                //           checked={expenseForm.isFixed}
-                //           onChange={handleExpenseChange}
-                //         />
-                //         <label className="form-check-label">
-                //           Fixed Expense
-                //         </label>
-                //       </div>
-                //     </div>
-                //     <div className="col-12">
-                //       <button className="btn btn-success w-100">
-                //         Add Expense
-                //       </button>
-                //     </div>
-                //   </div>
-                // </form>
-
-
                 <form onSubmit={handleAddExpense}>
                   <div className="row g-2">
                     {/* Date */}
@@ -810,10 +684,6 @@ export default function ExpenseManager() {
                           ))}
                       </select>
                     </div>
-
-
-
-
                     {/* Amount */}
                     <div className="col-12 col-sm-6">
                       <input
@@ -870,13 +740,6 @@ export default function ExpenseManager() {
                     </div>
                   </div>
                 </form>
-
-
-
-
-
-
-
               )}
             </div>
           </div>
