@@ -811,6 +811,7 @@ export default function ExpenseManager() {
                     <tr>
                       <th>Name</th>
                       <th>Category</th>
+                      <th>Recurring</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -822,6 +823,7 @@ export default function ExpenseManager() {
                           {categories.find((c) => c.catId === sc.categoryId)
                             ?.name || "-"}
                         </td>
+                        <td>{sc.isRecurring ? "Yes" : "No"}</td>
                         <td>
                           <button
                             className="btn btn-sm btn-primary me-2"
@@ -1200,12 +1202,54 @@ export default function ExpenseManager() {
                     </option>
                   ))}
                 </select>
+
+                {/* SubCategory Select */}
+                {/* <select
+                    className="form-select mb-2"
+                    value={selectedSubCategoryForPlace}
+                    onChange={(e) =>
+                      setSelectedSubCategoryForPlace(e.target.value)
+                    }
+                  >
+                    <option value="">Choose SubCategory (Optional)</option>
+                    {subCategories
+                      .filter(
+                        (sc) => sc.categoryId === selectedCategoryForPlace
+                      )
+                      .map((sc) => (
+                        <option key={sc.id} value={sc.id}>
+                          {sc.name}
+                        </option>
+                      ))}
+                  </select> */}
+
                 <input
                   type="text"
                   className="form-control"
                   value={editSubCategoryName}
                   onChange={(e) => setEditSubCategoryName(e.target.value)}
                 />
+              </div>
+              {/* Is Recurring */}
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="editSubIsRecurring"
+                  checked={editSubCategoryItem?.isRecurring ?? false}
+                  onChange={(e) =>
+                    setEditSubCategoryItem({
+                      ...editSubCategoryItem,
+                      isRecurring: e.target.checked,
+                    })
+                  }
+                />
+                <label
+                  className="form-check-label"
+                  htmlFor="editSubIsRecurring"
+                >
+                  Is Recurring
+                </label>
               </div>
               <div className="modal-footer">
                 <button
