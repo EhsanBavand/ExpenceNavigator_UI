@@ -58,7 +58,6 @@ export default function ExpenseManager() {
     )}`;
   });
 
-  // Modals state
   const [editCategoryModalOpen, setEditCategoryModalOpen] = useState(false);
   const [editSubCategoryModalOpen, setEditSubCategoryModalOpen] =
     useState(false);
@@ -77,7 +76,7 @@ export default function ExpenseManager() {
 
   const [editExpenseModalOpen, setEditExpenseModalOpen] = useState(false);
 
-  const [editingExpenseId, setEditingExpenseId] = useState(null); // for inline editing
+  const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [editExpenseForm, setEditExpenseForm] = useState({
     date: "",
     categoryId: "",
@@ -88,12 +87,13 @@ export default function ExpenseManager() {
     note: "",
     isFixed: false,
   });
-  const [editExpenseItem, setEditExpenseItem] = useState(null); // used by saveEditExpense
+  const [editExpenseItem, setEditExpenseItem] = useState(null);
   const [expenses, setExpenses] = useState([]);
 
   const [isRecurring, setIsRecurring] = useState(false);
   const [categoryIsRecurring, setCategoryIsRecurring] = useState(false);
   const [subCategoryIsRecurring, setSubCategoryIsRecurring] = useState(false);
+  const [placeIsRecurring, setplaceIsRecurring] = useState(false);
 
   const [year, month] = selectedDate.split("-");
 
@@ -120,10 +120,11 @@ export default function ExpenseManager() {
     fetchData();
   }, [userId]);
 
-  // to log categories whenever they change
   useEffect(() => {
     console.log("Categories:", categories);
-  }, [categories]);
+    console.log("SubCategories:", subCategories);
+    console.log("Places:", places);
+  }, [categories, subCategories, places]);
 
   const fetchData = async () => {
     try {
@@ -142,7 +143,6 @@ export default function ExpenseManager() {
     }
   };
 
-  // ----------------- Add Handlers -----------------
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!categoryName || !userId) return;
@@ -194,6 +194,7 @@ export default function ExpenseManager() {
         categoryId: selectedCategoryForPlace,
         subCategoryId: selectedSubCategoryForPlace || null,
         userId,
+        isRecurring: placeIsRecurring, // <--- add this
       });
       setPlaces([...places, res]);
       setPlaceName("");
@@ -244,10 +245,19 @@ export default function ExpenseManager() {
 
   const handleExpenseChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setExpenseForm({
-      ...expenseForm,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    if (name === "category") {
+      setExpenseForm({
+        ...expenseForm,
+        category: value,
+        subCategory: "", // reset subCategory
+        place: "", // reset place
+      });
+    } else {
+      setExpenseForm({
+        ...expenseForm,
+        [name]: type === "checkbox" ? checked : value,
+      });
+    }
   };
 
   const handleDelete = async (id, type) => {
@@ -289,7 +299,7 @@ export default function ExpenseManager() {
   };
 
   const openEditCategoryModal = (category) => {
-    setEditCategoryItem(category); // includes id, userId, month, year
+    setEditCategoryItem(category);
     setEditCategoryName(category.name);
     setEditCategoryModalOpen(true);
   };
@@ -302,10 +312,13 @@ export default function ExpenseManager() {
   };
 
   const openEditPlaceModal = (place) => {
-    setEditPlaceItem(place);
-    setEditPlaceName(place.name);
-    setEditPlaceCategory(place.categoryId);
-    setEditPlaceSubCategory(place.subCategoryId || "");
+    const freshPlace = places.find((p) => p.id === place.id);
+
+    setEditPlaceItem(freshPlace);
+    setEditPlaceName(freshPlace.name);
+    setEditPlaceCategory(freshPlace.categoryId);
+    setEditPlaceSubCategory(freshPlace.subCategoryId);
+
     setEditPlaceModalOpen(true);
   };
 
@@ -348,24 +361,14 @@ export default function ExpenseManager() {
         name: editSubCategoryName,
         categoryId: editSubCategoryParent,
         createdDate: editSubCategoryItem.createdDate || null,
-        isRecurring: editSubCategoryItem.isRecurring, // or a separate state if editable in modal
+        isRecurring: editSubCategoryItem.isRecurring,
       };
-
-      console.log("Updating subcategory with payload:", payload);
 
       await updateSubCategory(editSubCategoryItem.id, payload);
 
-      setSubCategories(
-        subCategories.map((sc) =>
-          sc.id === editSubCategoryItem.id
-            ? {
-                ...sc,
-                name: editSubCategoryName,
-                categoryId: editSubCategoryParent,
-              }
-            : sc
-        )
-      );
+      // ⬇️ IMPORTANT PART: refresh from backend
+      const refreshedSubCategories = await getSubCategories(userId);
+      setSubCategories(refreshedSubCategories);
 
       setEditSubCategoryModalOpen(false);
     } catch (err) {
@@ -382,7 +385,8 @@ export default function ExpenseManager() {
         name: editPlaceName,
         categoryId: editPlaceCategory,
         subCategoryId: editPlaceSubCategory || null,
-        userId, // 👈 required for backend
+        userId,
+        isRecurring: editPlaceItem.isRecurring,
       };
 
       console.log("Payload:", payload);
@@ -519,7 +523,7 @@ export default function ExpenseManager() {
                   >
                     <option value="">Choose Category</option>
                     {categories.map((c) => (
-                      <option key={c.catId} value={c.catId}>
+                      <option key={c.id} value={c.catId}>
                         {c.name}
                       </option>
                     ))}
@@ -576,26 +580,6 @@ export default function ExpenseManager() {
                     ))}
                   </select>
 
-                  {/* SubCategory Select */}
-                  {/* <select
-                    className="form-select mb-2"
-                    value={selectedSubCategoryForPlace}
-                    onChange={(e) =>
-                      setSelectedSubCategoryForPlace(e.target.value)
-                    }
-                  >
-                    <option value="">Choose SubCategory (Optional)</option>
-                    {subCategories
-                      .filter(
-                        (sc) => sc.categoryId === selectedCategoryForPlace
-                      )
-                      .map((sc) => (
-                        <option key={sc.id} value={sc.id}>
-                          {sc.name}
-                        </option>
-                      ))}
-                  </select> */}
-
                   {/* Place Name */}
                   <input
                     type="text"
@@ -606,6 +590,19 @@ export default function ExpenseManager() {
                     required
                   />
 
+                  <div className="form-check mb-3">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="isRecurring"
+                      checked={placeIsRecurring}
+                      onChange={(e) => setplaceIsRecurring(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="isRecurring">
+                      Is Recurring
+                    </label>
+                  </div>
+
                   <button className="btn btn-warning w-100">Add Place</button>
                 </form>
               )}
@@ -614,7 +611,7 @@ export default function ExpenseManager() {
               {formTab === "expense" && (
                 <form onSubmit={handleAddExpense}>
                   <div className="row g-2">
-                    {/* Date Picker */}
+                    {/* Date */}
                     <div className="col-12 col-sm-6">
                       <input
                         type="date"
@@ -626,23 +623,33 @@ export default function ExpenseManager() {
                       />
                     </div>
 
+                    {/* Category */}
                     <div className="col-12 col-sm-6">
                       <select
                         className="form-select"
                         name="category"
                         value={expenseForm.category}
-                        onChange={handleExpenseChange}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setExpenseForm({
+                            ...expenseForm,
+                            category: value,
+                            subCategory: "", // reset subcategory
+                            place: "", // reset place
+                          });
+                        }}
                         required
                       >
-                        <option value="">Category</option>
+                        <option value="">Choose a Category</option>
                         {categories.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.catId} value={c.catId}>
                             {c.name}
                           </option>
                         ))}
                       </select>
                     </div>
 
+                    {/* SubCategory */}
                     <div className="col-12 col-sm-6">
                       <select
                         className="form-select"
@@ -650,7 +657,9 @@ export default function ExpenseManager() {
                         value={expenseForm.subCategory || ""}
                         onChange={handleExpenseChange}
                       >
-                        <option value="">SubCategory (optional)</option>
+                        <option value="">
+                          Choose a SubCategory (optional)
+                        </option>
                         {subCategories
                           .filter(
                             (sc) => sc.categoryId === expenseForm.category
@@ -663,14 +672,16 @@ export default function ExpenseManager() {
                       </select>
                     </div>
 
+                    {/* Place */}
                     <div className="col-12 col-sm-6">
                       <select
                         className="form-select"
                         name="place"
                         value={expenseForm.place || ""}
                         onChange={handleExpenseChange}
+                        required
                       >
-                        <option value="">Place (optional)</option>
+                        <option value="">Choose a Place</option>
                         {places
                           .filter((p) => p.categoryId === expenseForm.category)
                           .map((p) => (
@@ -680,7 +691,7 @@ export default function ExpenseManager() {
                           ))}
                       </select>
                     </div>
-
+                    {/* Amount */}
                     <div className="col-12 col-sm-6">
                       <input
                         type="number"
@@ -693,6 +704,7 @@ export default function ExpenseManager() {
                       />
                     </div>
 
+                    {/* Paid For */}
                     <div className="col-12 col-sm-6">
                       <input
                         type="text"
@@ -704,6 +716,7 @@ export default function ExpenseManager() {
                       />
                     </div>
 
+                    {/* Note */}
                     <div className="col-12">
                       <textarea
                         name="note"
@@ -714,6 +727,7 @@ export default function ExpenseManager() {
                       ></textarea>
                     </div>
 
+                    {/* Fixed Expense */}
                     <div className="col-12">
                       <div className="form-check mb-2">
                         <input
@@ -729,6 +743,7 @@ export default function ExpenseManager() {
                       </div>
                     </div>
 
+                    {/* Submit */}
                     <div className="col-12">
                       <button className="btn btn-success w-100">
                         Add Expense
@@ -858,6 +873,7 @@ export default function ExpenseManager() {
                     <tr>
                       <th>Name</th>
                       <th>Category</th>
+                      <th>Recurring</th>
                       {/* <th>SubCategory</th> */}
                       <th>Action</th>
                     </tr>
@@ -870,6 +886,7 @@ export default function ExpenseManager() {
                           {categories.find((c) => c.catId === p.categoryId)
                             ?.name || "-"}
                         </td>
+                        <td>{p.isRecurring ? "Yes" : "No"}</td>
                         {/* <td>{subCategories.find(sc => sc.id === p.subCategoryId)?.name || "-"}</td> */}
                         <td>
                           <button
@@ -1197,59 +1214,39 @@ export default function ExpenseManager() {
                 >
                   <option value="">-- Select Parent Category --</option>
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <option key={c.catId} value={c.catId}>
                       {c.name}
                     </option>
                   ))}
                 </select>
-
-                {/* SubCategory Select */}
-                {/* <select
-                    className="form-select mb-2"
-                    value={selectedSubCategoryForPlace}
-                    onChange={(e) =>
-                      setSelectedSubCategoryForPlace(e.target.value)
-                    }
-                  >
-                    <option value="">Choose SubCategory (Optional)</option>
-                    {subCategories
-                      .filter(
-                        (sc) => sc.categoryId === selectedCategoryForPlace
-                      )
-                      .map((sc) => (
-                        <option key={sc.id} value={sc.id}>
-                          {sc.name}
-                        </option>
-                      ))}
-                  </select> */}
-
+                {/* input Name */}
                 <input
                   type="text"
                   className="form-control"
                   value={editSubCategoryName}
                   onChange={(e) => setEditSubCategoryName(e.target.value)}
                 />
-              </div>
-              {/* Is Recurring */}
-              <div className="form-check">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="editSubIsRecurring"
-                  checked={editSubCategoryItem?.isRecurring ?? false}
-                  onChange={(e) =>
-                    setEditSubCategoryItem({
-                      ...editSubCategoryItem,
-                      isRecurring: e.target.checked,
-                    })
-                  }
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor="editSubIsRecurring"
-                >
-                  Is Recurring
-                </label>
+                {/* Is Recurring */}
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="editSubIsRecurring"
+                    checked={editSubCategoryItem?.isRecurring ?? false}
+                    onChange={(e) =>
+                      setEditSubCategoryItem({
+                        ...editSubCategoryItem,
+                        isRecurring: e.target.checked,
+                      })
+                    }
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor="editSubIsRecurring"
+                  >
+                    Is Recurring
+                  </label>
+                </div>
               </div>
               <div className="modal-footer">
                 <button
@@ -1290,21 +1287,38 @@ export default function ExpenseManager() {
                 >
                   <option value="">-- Select Category --</option>
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <option key={c.id} value={c.catId}>
                       {c.name}
                     </option>
                   ))}
                 </select>
-                {/* <select className="form-select mb-2" value={editPlaceSubCategory} onChange={(e) => setEditPlaceSubCategory(e.target.value)}>
-                  <option value="">-- Select SubCategory (Optional) --</option>
-                  {subCategories.filter(sc => sc.categoryId === editPlaceCategory).map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
-                </select> */}
                 <input
                   type="text"
                   className="form-control"
                   value={editPlaceName}
                   onChange={(e) => setEditPlaceName(e.target.value)}
                 />
+                {/* Is Recurring */}
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="editPlaceIsRecurring"
+                    checked={editPlaceItem?.isRecurring ?? false}
+                    onChange={(e) =>
+                      setEditPlaceItem({
+                        ...editPlaceItem,
+                        isRecurring: e.target.checked,
+                      })
+                    }
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor="editPlaceIsRecurring"
+                  >
+                    Is Recurring
+                  </label>
+                </div>
               </div>
               <div className="modal-footer">
                 <button
