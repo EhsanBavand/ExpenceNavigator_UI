@@ -70,12 +70,9 @@ export default function ExpenseManager() {
   const [editSubCategoryName, setEditSubCategoryName] = useState("");
   const [editSubCategoryParent, setEditSubCategoryParent] = useState("");
   const [editPlaceName, setEditPlaceName] = useState("");
-  const [editPlaceCategory, setEditPlaceCategory] = useState("");
   const [editPlaceSubCategory, setEditPlaceSubCategory] = useState("");
 
   const [editExpenseModalOpen, setEditExpenseModalOpen] = useState(false);
-
-  const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [editExpenseForm, setEditExpenseForm] = useState({
     date: "",
     categoryId: "",
@@ -86,15 +83,34 @@ export default function ExpenseManager() {
     note: "",
     isFixed: false,
   });
-  const [editExpenseItem, setEditExpenseItem] = useState(null);
   const [expenses, setExpenses] = useState([]);
-
-  const [isRecurring, setIsRecurring] = useState(false);
   const [categoryIsRecurring, setCategoryIsRecurring] = useState(false);
-  const [subCategoryIsRecurring, setSubCategoryIsRecurring] = useState(false);
   const [placeIsRecurring, setplaceIsRecurring] = useState(false);
-
   const [year, month] = selectedDate.split("-");
+
+  const categoryMap = React.useMemo(() => {
+    const map = {};
+    categories.forEach((c) => {
+      map[c.catId] = c.name;
+    });
+    return map;
+  }, [categories]);
+  
+  const sortedExpenses = React.useMemo(() => {
+    return [...expenses].sort((a, b) => {
+      const catA = categoryMap[a.categoryId] || "";
+      const catB = categoryMap[b.categoryId] || "";
+      return catA.localeCompare(catB);
+    });
+  }, [expenses, categoryMap]);
+
+
+  const [editPlaceCategory, setEditPlaceCategory] = useState("");
+  const [editExpenseItem, setEditExpenseItem] = useState(null);
+  const [subCategoryIsRecurring, setSubCategoryIsRecurring] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState(null);
+
 
   // Decode JWT to get userId
   useEffect(() => {
@@ -746,12 +762,13 @@ export default function ExpenseManager() {
                       <div className="form-check mb-2">
                         <input
                           type="checkbox"
+                          id="expenseLable"
                           name="isFixed"
                           className="form-check-input"
                           checked={expenseForm.isFixed}
                           onChange={handleExpenseChange}
                         />
-                        <label className="form-check-label">Fixed Expense</label>
+                        <label className="form-check-label" htmlFor="expenseLable">Fixed Expense</label>
                       </div>
                     </div>
 
@@ -948,7 +965,7 @@ export default function ExpenseManager() {
                     </tr>
                   </thead>
                   <tbody>
-                    {expenses.map((exp) => {
+                    {sortedExpenses.map((exp) => {
                       const row = editExpenseForm[exp.id] || {}; // ensure object exists
 
                       return (
