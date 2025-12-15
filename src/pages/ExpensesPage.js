@@ -172,7 +172,7 @@ export default function ExpenseManager() {
         name: subCategoryName,
         categoryId: selectedCategory, // ✅ this is now the ID, not name
         userId,
-        isRecurring: subCategoryIsRecurring, // <--- add this
+        isRecurring: true, // <--- add this
       });
 
       setSubCategories([...subCategories, res]);
@@ -262,13 +262,14 @@ export default function ExpenseManager() {
     }
   };
 
-  const handleDelete = async (id, type) => {
+  const handleDelete = async (id, type, userId, month, year) => {
     if (!id || !userId) return;
 
     try {
       switch (type) {
         case "category":
-          await deleteCategory(id);
+          // await deleteCategory(id);
+          await deleteCategory(id, userId, month, year);
           const updatedCategories = await getCategories(userId, month, year);
           setCategories(updatedCategories);
           break;
@@ -364,6 +365,7 @@ export default function ExpenseManager() {
         categoryId: editSubCategoryParent,
         createdDate: editSubCategoryItem.createdDate || null,
         isRecurring: editSubCategoryItem.isRecurring,
+        isActive: editSubCategoryItem.isActive,
       };
 
       await updateSubCategory(editSubCategoryItem.id, payload);
@@ -390,6 +392,7 @@ export default function ExpenseManager() {
         subCategoryId: editPlaceSubCategory || null,
         userId,
         isRecurring: editPlaceItem.isRecurring,
+        isActive: editPlaceItem.isActive,
       };
 
       console.log("Payload:", payload);
@@ -542,7 +545,7 @@ export default function ExpenseManager() {
                   />
 
                   {/* ✅ Is Recurring */}
-                  <div className="form-check mb-3">
+                  {/* <div className="form-check mb-3">
                     <input
                       type="checkbox"
                       className="form-check-input"
@@ -555,7 +558,7 @@ export default function ExpenseManager() {
                     <label className="form-check-label" htmlFor="isRecurring">
                       Is Recurring
                     </label>
-                  </div>
+                  </div> */}
                   <button className="btn btn-primary w-100">
                     Add SubCategory
                   </button>
@@ -643,11 +646,13 @@ export default function ExpenseManager() {
                         required
                       >
                         <option value="">Choose a Category</option>
-                        {categories.map((c) => (
-                          <option key={c.catId} value={c.catId}>
-                            {c.name}
-                          </option>
-                        ))}
+                        {categories
+                          .filter((c) => c.isActive)
+                          .map((c) => (
+                            <option key={c.catId} value={c.catId}>
+                              {c.name}
+                            </option>
+                          ))}
                       </select>
                     </div>
 
@@ -787,6 +792,7 @@ export default function ExpenseManager() {
                       <th>Name</th>
                       <th>Budget</th>
                       <th>Recurring</th>
+                      <th>Active</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -796,6 +802,7 @@ export default function ExpenseManager() {
                         <td>{cat.name}</td>
                         <td>{cat.budget}</td>
                         <td>{cat.isRecurring ? "Yes" : "No"}</td>
+                        <td>{cat.isActive ? "Yes" : "No"}</td>
                         <td>
                           <button
                             className="btn btn-sm btn-primary me-2"
@@ -805,7 +812,7 @@ export default function ExpenseManager() {
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(cat.catId, "category")}
+                            onClick={() => handleDelete(cat.catId, "category", userId, parseInt(month), parseInt(year))}
                           >
                             Delete
                           </button>
@@ -832,6 +839,7 @@ export default function ExpenseManager() {
                       <th>Name</th>
                       <th>Category</th>
                       <th>Recurring</th>
+                      <th>Active</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -843,6 +851,7 @@ export default function ExpenseManager() {
                           {categories.find((c) => c.catId === sc.categoryId)?.name || "-"}
                         </td>
                         <td>{sc.isRecurring ? "Yes" : "No"}</td>
+                        <td>{sc.isActive ? "Yes" : "No"}</td>
                         <td>
                           <button
                             className="btn btn-sm btn-primary me-2"
@@ -852,7 +861,7 @@ export default function ExpenseManager() {
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(sc.id, "subCategory")}
+                            onClick={() => handleDelete(sc.id, "subCategory", userId, parseInt(month), parseInt(year))}
                           >
                             Delete
                           </button>
@@ -879,6 +888,7 @@ export default function ExpenseManager() {
                       {/* <th>Category</th> */}
                       <th>Recurring</th>
                       {/* <th>SubCategory</th> */}
+                      <th>Active</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -892,6 +902,7 @@ export default function ExpenseManager() {
                         </td> */}
                         <td>{p.isRecurring ? "Yes" : "No"}</td>
                         {/* <td>{subCategories.find(sc => sc.id === p.subCategoryId)?.name || "-"}</td> */}
+                        <td>{p.isActive ? "Yes" : "No"}</td>
                         <td>
                           <button
                             className="btn btn-sm btn-primary me-2"
@@ -901,7 +912,7 @@ export default function ExpenseManager() {
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(p.id, "place")}
+                            onClick={() => handleDelete(p.id, "place", userId, parseInt(month), parseInt(year))}
                           >
                             Delete
                           </button>
@@ -1200,6 +1211,25 @@ export default function ExpenseManager() {
                   </label>
                 </div>
 
+                {/* Is Active */}
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="editIsActive"
+                    checked={editCategoryItem?.isActive ?? false}
+                    onChange={(e) =>
+                      setEditCategoryItem({
+                        ...editCategoryItem,
+                        isActive: e.target.checked,
+                      })
+                    }
+                  />
+                  <label className="form-check-label" htmlFor="editIsActive">
+                    Is Active
+                  </label>
+                </div>
+
                 {/* Hidden ID for safety */}
                 <input type="hidden" value={editCategoryItem?.id} />
               </div>
@@ -1272,6 +1302,26 @@ export default function ExpenseManager() {
                   </label>
                 </div>
 
+
+                {/* Is Active */}
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="editSubIsActive"
+                    checked={editSubCategoryItem?.isActive ?? false}
+                    onChange={(e) =>
+                      setEditSubCategoryItem({
+                        ...editSubCategoryItem,
+                        isActive: e.target.checked,
+                      })
+                    }
+                  />
+                  <label className="form-check-label" htmlFor="editSubIsActive">
+                    Is Active
+                  </label>
+                </div>
+
               </div>
               <div className="modal-footer">
                 <button
@@ -1305,18 +1355,6 @@ export default function ExpenseManager() {
                 ></button>
               </div>
               <div className="modal-body">
-                {/* <select
-                  className="form-select mb-2"
-                  value={editPlaceCategory}
-                  onChange={(e) => setEditPlaceCategory(e.target.value)}
-                >
-                  <option value="">-- Select Category --</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.catId}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select> */}
                 <input type="text"
                   className="form-control"
                   value={editPlaceName}
@@ -1338,6 +1376,24 @@ export default function ExpenseManager() {
                   />
                   <label className="form-check-label" htmlFor="editPlaceIsRecurring">
                     Is Recurring
+                  </label>
+                </div>
+                {/* Is Active */}
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="editPlaceIsActive"
+                    checked={editPlaceItem?.isActive ?? false}
+                    onChange={(e) =>
+                      setEditPlaceItem({
+                        ...editPlaceItem,
+                        isActive: e.target.checked,
+                      })
+                    }
+                  />
+                  <label className="form-check-label" htmlFor="editPlaceIsActive">
+                    Is Active
                   </label>
                 </div>
               </div>

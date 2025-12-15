@@ -174,10 +174,13 @@ export const updateCategory = async (categoryDto) => {
   return res.data;
 };
 
-export const deleteCategory = async (id) => {
+export const deleteCategory = async (id, userId, month, year) => {
   try {
-    const res = await axios.delete(`${API_BASE_URL}/Category/${id}`);
-    return res.status === 204;
+    const res = await axios.delete(
+      // `${API_BASE_URL}/Category/${id}`
+      `${API_BASE_URL}/Category/${id}?userId=${userId}&month=${month}&year=${year}`
+    );
+      return res.status === 204;
   } catch (error) {
     console.error(`Error deleting category ${id}:`, error);
     throw error;
