@@ -317,8 +317,10 @@ export const getPlacesForDropdown = async (
 // =====================
 
 // ----------------- Expense API -----------------
-export const getExpenses = async (userId) => {
-  const res = await axios.get(`${API_BASE_URL}/Expense?userId=${userId}`);
+export const getExpenses = async (userId, month, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/Expense/${userId}/${month}/${year}`
+  );
   return res.data;
 };
 

@@ -85,7 +85,7 @@ export default function ExpenseManager() {
   });
   const [expenses, setExpenses] = useState([]);
   const [categoryIsRecurring, setCategoryIsRecurring] = useState(false);
-  const [placeIsRecurring, setplaceIsRecurring] = useState(false);
+  const [placeIsRecurring, setplaceIsRecurring] = useState(true);
   const [year, month] = selectedDate.split("-");
 
   const categoryMap = React.useMemo(() => {
@@ -147,7 +147,8 @@ export default function ExpenseManager() {
         getCategories(userId, month, year),
         getSubCategories(userId),
         getPlaces(userId),
-        getExpenses(userId),
+        // getExpenses(userId),
+        getExpenses(userId, month, year),
       ]);
       setCategories(catRes);
       setSubCategories(subRes);
@@ -209,7 +210,7 @@ export default function ExpenseManager() {
         // categoryId: selectedCategoryForPlace,
         subCategoryId: selectedSubCategoryForPlace || null,
         userId,
-        isRecurring: placeIsRecurring, // <--- add this
+        isRecurring: true, // <--- add this
 
       });
       setPlaces([...places, res]);
@@ -304,7 +305,8 @@ export default function ExpenseManager() {
 
         case "expense":
           await deleteExpense(id);
-          const updatedExpenses = await getExpenses(userId);
+          // const updatedExpenses = await getExpenses(userId);
+          const updatedExpenses = await getExpenses(userId, month, year);
           setExpenses(updatedExpenses);
           break;
 
@@ -611,7 +613,7 @@ export default function ExpenseManager() {
                     required
                   />
 
-                  <div className="form-check mb-3">
+                  {/* <div className="form-check mb-3">
                     <input
                       type="checkbox"
                       className="form-check-input"
@@ -622,7 +624,7 @@ export default function ExpenseManager() {
                     <label className="form-check-label" htmlFor="isRecurring">
                       Is Recurring
                     </label>
-                  </div>
+                  </div> */}
 
                   <button className="btn btn-warning w-100">Add Place</button>
                 </form>
@@ -698,7 +700,7 @@ export default function ExpenseManager() {
                         name="place"
                         value={expenseForm.place || ""}
                         onChange={handleExpenseChange}
-                        required
+                        // required
                       >
                         <option value="">Choose a Place</option>
                         {places.map((p) => (
@@ -1003,7 +1005,7 @@ export default function ExpenseManager() {
                                 })
                               }
                             >
-                              <option value="">Category</option>
+                              <option value="">.....</option>
                               {categories.map((c) => (
                                 <option key={c.id} value={c.catId}>
                                   {c.name}
@@ -1029,7 +1031,7 @@ export default function ExpenseManager() {
                                 })
                               }
                             >
-                              <option value="">SubCategory</option>
+                              <option value="">....</option>
                               {subCategories
                                 .filter(
                                   (sc) =>
@@ -1056,7 +1058,7 @@ export default function ExpenseManager() {
                                 })
                               }
                             >
-                              <option value="">Place</option>
+                              <option value="">....</option>
                               {places
                                 // .filter(
                                 //   (p) =>
