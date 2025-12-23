@@ -69,32 +69,6 @@ const IncomePage = () => {
     }
   }, []);
 
-  // // Fetch incomes
-  // useEffect(() => {
-  //   if (!userId) return;
-
-  //   const fetchIncomes = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const now = new Date();
-  //       const response = await getIncomesByMonth(
-  //         userId,
-  //         now.getMonth() + 1,
-  //         now.getFullYear()
-  //       );
-  //       setIncomeList(response.data);
-  //       setError(null);
-  //     } catch (e) {
-  //       setError("Failed to load incomes.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchIncomes();
-  // }, [userId]);
-
-  // Fetch sources
   // Fetch incomes
   useEffect(() => {
     if (!userId) return;
@@ -102,7 +76,9 @@ const IncomePage = () => {
     const fetchIncomes = async () => {
       setLoading(true);
       try {
-        const response = await getIncomes(userId); // ✅ Fetch all incomes
+        // const response = await getIncomes(userId);
+        const now = new Date();
+        const response = await getIncomesByMonth(userId, now.getMonth() + 1, now.getFullYear());
         setIncomeList(response.data);
         setError(null);
       } catch (e) {
@@ -219,7 +195,9 @@ const IncomePage = () => {
       }
 
       // ✅ Refresh all incomes (not filtered by month)
-      const refresh = await getIncomes(userId);
+      // const refresh = await getIncomes(userId);
+      const now = new Date();
+      const refresh = await getIncomesByMonth(userId, now.getMonth() + 1, now.getFullYear());
       setIncomeList(refresh.data);
       setError(null);
     } catch (err) {
@@ -230,25 +208,12 @@ const IncomePage = () => {
     }
   };
 
-  // const handleDeleteIncome = async (id) => {
-  //   try {
-  //     await deleteIncome(id);
-  //     const now = new Date();
-  //     const response = await getIncomesByMonth(
-  //       userId,
-  //       now.getMonth() + 1,
-  //       now.getFullYear()
-  //     );
-  //     setIncomeList(response.data);
-  //   } catch {
-  //     setError("Failed to delete income.");
-  //   }
-  // };
-
   const handleDeleteIncome = async (id) => {
     try {
       await deleteIncome(id);
-      const response = await getIncomes(userId);
+      // const response = await getIncomes(userId);
+      const now = new Date();
+      const response = await getIncomesByMonth(userId, now.getMonth() + 1, now.getFullYear());
       setIncomeList(response.data);
     } catch {
       setError("Failed to delete income.");
@@ -288,7 +253,9 @@ const IncomePage = () => {
   const handleDuplicateIncome = async (id) => {
     try {
       await duplicateIncome(id);
-      const response = await getIncomes(userId);
+      // const response = await getIncomes(userId);
+      const now = new Date();
+      const response = await getIncomesByMonth(userId, now.getMonth() + 1, now.getFullYear());
       setIncomeList(response.data);
     } catch {
       setError("Failed to duplicate income.");
