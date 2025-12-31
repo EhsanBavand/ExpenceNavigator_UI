@@ -45,6 +45,7 @@ export default function ExpenseManager() {
     store: "",
     amount: "",
     paidFor: "",
+    itemName: "",
     note: "",
     isFixed: false,
   });
@@ -187,11 +188,11 @@ export default function ExpenseManager() {
 
   const handleAddPlace = async (e) => {
     e.preventDefault();
-    if (!placeName || !selectedCategoryForPlace || !userId) return;
+    if (!placeName || !userId) return;
     try {
       const res = await createPlace({
         name: placeName,
-        categoryId: selectedCategoryForPlace,
+        // categoryId: selectedCategoryForPlace,
         subCategoryId: selectedSubCategoryForPlace || null,
         userId,
         isRecurring: placeIsRecurring, // <--- add this
@@ -219,6 +220,7 @@ export default function ExpenseManager() {
         placeId: expenseForm.place || null,
         amount: parseFloat(expenseForm.amount),
         paidFor: expenseForm.paidFor || null,
+        itemName: expenseForm.itemName || null,
         note: expenseForm.note || null,
         isFixed: expenseForm.isFixed || false,
       });
@@ -234,6 +236,7 @@ export default function ExpenseManager() {
         store: "",
         amount: "",
         paidFor: "",
+        itemName: "",
         note: "",
         isFixed: false,
       });
@@ -383,7 +386,7 @@ export default function ExpenseManager() {
 
       const payload = {
         name: editPlaceName,
-        categoryId: editPlaceCategory,
+        // categoryId: editPlaceCategory,
         subCategoryId: editPlaceSubCategory || null,
         userId,
         isRecurring: editPlaceItem.isRecurring,
@@ -399,8 +402,9 @@ export default function ExpenseManager() {
             ? {
                 ...p,
                 name: editPlaceName,
-                categoryId: editPlaceCategory,
-                subCategoryId: editPlaceSubCategory,
+                // categoryId: editPlaceCategory,
+                // subCategoryId: editPlaceSubCategory,
+                isRecurring: editPlaceItem.isRecurring,
               }
             : p
         )
@@ -430,6 +434,7 @@ export default function ExpenseManager() {
         placeId: (rowData.placeId ?? original.placeId) || null,
         amount: parseFloat(rowData.amount ?? original.amount),
         paidFor: (rowData.paidFor ?? original.paidFor) || null,
+        itemName: (rowData.itemName ?? original.itemName) || null,
         note: rowData.note ?? original.note ?? "",
         isFixed: (rowData.isFixed ?? original.isFixed) || false,
       };
@@ -563,7 +568,7 @@ export default function ExpenseManager() {
               {formTab === "place" && (
                 <form onSubmit={handleAddPlace}>
                   {/* Category Select */}
-                  <select
+                  {/* <select
                     className="form-select mb-2"
                     value={selectedCategoryForPlace}
                     onChange={(e) => {
@@ -578,7 +583,7 @@ export default function ExpenseManager() {
                         {c.name}
                       </option>
                     ))}
-                  </select>
+                  </select> */}
 
                   {/* Place Name */}
                   <input
@@ -682,13 +687,11 @@ export default function ExpenseManager() {
                         required
                       >
                         <option value="">Choose a Place</option>
-                        {places
-                          .filter((p) => p.categoryId === expenseForm.category)
-                          .map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
-                          ))}
+                        {places.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     {/* Amount */}
@@ -712,6 +715,18 @@ export default function ExpenseManager() {
                         className="form-control"
                         placeholder="Paid For"
                         value={expenseForm.paidFor}
+                        onChange={handleExpenseChange}
+                      />
+                    </div>
+
+                    {/* Item Name */}
+                    <div className="col-12 col-sm-6">
+                      <input
+                        type="text"
+                        name="itemName"
+                        className="form-control"
+                        placeholder="Item Name"
+                        value={expenseForm.itemName}
                         onChange={handleExpenseChange}
                       />
                     </div>
@@ -872,7 +887,7 @@ export default function ExpenseManager() {
                   <thead>
                     <tr>
                       <th>Name</th>
-                      <th>Category</th>
+                      {/* <th>Category</th> */}
                       <th>Recurring</th>
                       {/* <th>SubCategory</th> */}
                       <th>Action</th>
@@ -882,10 +897,10 @@ export default function ExpenseManager() {
                     {places.map((p) => (
                       <tr key={p.id}>
                         <td>{p.name}</td>
-                        <td>
+                        {/* <td>
                           {categories.find((c) => c.catId === p.categoryId)
                             ?.name || "-"}
-                        </td>
+                        </td> */}
                         <td>{p.isRecurring ? "Yes" : "No"}</td>
                         {/* <td>{subCategories.find(sc => sc.id === p.subCategoryId)?.name || "-"}</td> */}
                         <td>
@@ -926,6 +941,7 @@ export default function ExpenseManager() {
                       <th>Place</th>
                       <th>Amount</th>
                       <th>Paid For</th>
+                      <th>Item Name</th>
                       <th>Note</th>
                       <th>Fixed</th>
                       <th>Actions</th>
@@ -937,6 +953,7 @@ export default function ExpenseManager() {
 
                       return (
                         <tr key={exp.id}>
+                          {/* Date */}
                           <td>
                             <input
                               type="date"
@@ -954,6 +971,7 @@ export default function ExpenseManager() {
                             />
                           </td>
 
+                          {/* Category */}
                           <td>
                             <select
                               className="form-select"
@@ -970,13 +988,14 @@ export default function ExpenseManager() {
                             >
                               <option value="">Category</option>
                               {categories.map((c) => (
-                                <option key={c.id} value={c.id}>
+                                <option key={c.id} value={c.catId}>
                                   {c.name}
                                 </option>
                               ))}
                             </select>
                           </td>
 
+                          {/* SubCategory */}
                           <td>
                             <select
                               className="form-select"
@@ -1008,6 +1027,7 @@ export default function ExpenseManager() {
                             </select>
                           </td>
 
+                          {/* Place */}
                           <td>
                             <select
                               className="form-select"
@@ -1021,11 +1041,11 @@ export default function ExpenseManager() {
                             >
                               <option value="">Place</option>
                               {places
-                                .filter(
-                                  (p) =>
-                                    p.categoryId ===
-                                    (row.categoryId ?? exp.categoryId)
-                                )
+                                // .filter(
+                                //   (p) =>
+                                //     p.categoryId ===
+                                //     (row.categoryId ?? exp.categoryId)
+                                // )
                                 .map((p) => (
                                   <option key={p.id} value={p.id}>
                                     {p.name}
@@ -1034,6 +1054,7 @@ export default function ExpenseManager() {
                             </select>
                           </td>
 
+                          {/* Amount */}
                           <td>
                             <input
                               type="number"
@@ -1048,6 +1069,7 @@ export default function ExpenseManager() {
                             />
                           </td>
 
+                          {/* Paid For */}
                           <td>
                             <input
                               type="text"
@@ -1062,6 +1084,25 @@ export default function ExpenseManager() {
                             />
                           </td>
 
+                          {/* Item Name */}
+                          <td>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={row.itemName ?? exp.itemName ?? ""}
+                              onChange={(e) =>
+                                setEditExpenseForm({
+                                  ...editExpenseForm,
+                                  [exp.id]: {
+                                    ...row,
+                                    itemName: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </td>
+
+                          {/* Note */}
                           <td>
                             <input
                               type="text"
@@ -1076,6 +1117,7 @@ export default function ExpenseManager() {
                             />
                           </td>
 
+                          {/* Is Fixed */}
                           <td>
                             <input
                               type="checkbox"
@@ -1280,7 +1322,7 @@ export default function ExpenseManager() {
                 ></button>
               </div>
               <div className="modal-body">
-                <select
+                {/* <select
                   className="form-select mb-2"
                   value={editPlaceCategory}
                   onChange={(e) => setEditPlaceCategory(e.target.value)}
@@ -1291,7 +1333,7 @@ export default function ExpenseManager() {
                       {c.name}
                     </option>
                   ))}
-                </select>
+                </select> */}
                 <input
                   type="text"
                   className="form-control"
@@ -1465,6 +1507,22 @@ export default function ExpenseManager() {
                       }
                     />
                   </div>
+
+                  {/* Paid For */}
+                  {/* <div className="col-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Paid For"
+                      value={editExpenseForm.paidFor}
+                      onChange={(e) =>
+                        setEditExpenseForm({
+                          ...editExpenseForm,
+                          paidFor: e.target.value,
+                        })
+                      }
+                    />
+                  </div> */}
 
                   {/* Note */}
                   <div className="col-12">
