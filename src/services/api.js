@@ -14,17 +14,17 @@ export const register = async (userInfo) => {
   return await axios.post(`${API_BASE_URL}/auth/register`, userInfo);
 };
 
+// =====================
 // Income API
+// =====================
 export const getIncomes = async (userId) => {
   return await axios.get(`${API_BASE_URL}/income/user/${userId}`);
 };
-
 export const getIncomesByMonth = (userId, month, year) => {
   return axios.get(`${API_BASE_URL}/income/by-month`, {
     params: { userId, month, year },
   });
 };
-
 export const addIncome = async (income) => {
   try {
     const payload = {
@@ -61,16 +61,14 @@ export const addIncome = async (income) => {
     throw error;
   }
 };
-
-// Update income API call
 export const updateIncome = async (income) => {
   try {
     const payload = {
       ...income,
-      sourceType: income.sourceType || "Rental", // add default if missing
+      sourceType: income.sourceType || "",
       date: new Date(income.date).toISOString(),
       createdDate: new Date(income.createdDate).toISOString(),
-      modifiedDate: new Date(income.modifiedDate).toISOString(),
+      modifiedDate: new Date().toISOString(),
       frequency: income.frequency.toString(),
     };
 
@@ -81,30 +79,30 @@ export const updateIncome = async (income) => {
       payload
     );
 
-    console.log("Income updated:", response.data);
     return response.data;
   } catch (error) {
-    if (error.response) {
-      console.error("API Error:", error.response.data);
-    } else {
-      console.error("Error:", error.message);
-    }
+    console.error("API Error:", error.response?.data || error.message);
     throw error;
   }
 };
-
 export const deleteIncome = async (id) => {
   return await axios.delete(`${API_BASE_URL}/income/${id}`);
 };
-
 export const duplicateIncome = async (id) => {
   return await axios.post(`${API_BASE_URL}/income/${id}/duplicate-next-month`);
 };
-// ✅ New function to generate next month
 export const generateNextMonth = (userId, currentMonth, currentYear) =>
   axios.post(`${API_BASE_URL}/generate-next-month`, null, {
     params: { userId, currentMonth, currentYear },
   });
+export const copyIncomesByRange = (payload) => {
+  console.log("Payload sent to API:", payload);
+  return axios.post(`${API_BASE_URL}/income/copy-range`, payload);
+};
+
+// =====================
+// End Income
+// =====================
 
 /* For Source Type */
 export const addSource = async (source) => {
@@ -174,9 +172,12 @@ export const updateCategory = async (categoryDto) => {
   return res.data;
 };
 
-export const deleteCategory = async (id) => {
+export const deleteCategory = async (id, userId, month, year) => {
   try {
-    const res = await axios.delete(`${API_BASE_URL}/Category/${id}`);
+    const res = await axios.delete(
+      // `${API_BASE_URL}/Category/${id}`
+      `${API_BASE_URL}/Category/${id}?userId=${userId}&month=${month}&year=${year}`
+    );
     return res.status === 204;
   } catch (error) {
     console.error(`Error deleting category ${id}:`, error);
@@ -314,8 +315,10 @@ export const getPlacesForDropdown = async (
 // =====================
 
 // ----------------- Expense API -----------------
-export const getExpenses = async (userId) => {
-  const res = await axios.get(`${API_BASE_URL}/Expense?userId=${userId}`);
+export const getExpenses = async (userId, month, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/Expense/${userId}/${month}/${year}`
+  );
   return res.data;
 };
 
