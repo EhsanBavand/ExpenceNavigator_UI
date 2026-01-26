@@ -12,7 +12,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
       >
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h5 className="mb-0">💰 ExpenseNav</h5>
-          {/* Close button only visible on mobile */}
           <button
             className="btn btn-sm btn-outline-secondary d-md-none"
             onClick={onToggle}
@@ -38,6 +37,11 @@ const Sidebar = ({ isOpen, onToggle }) => {
             </Link>
           </li>
           <li className="nav-item">
+            <Link className="nav-link" to="/saving" onClick={onToggle}>
+              <i className="bi bi-piggy-bank-fill me-2"></i> Saving
+            </Link>
+          </li>
+          <li className="nav-item">
             <Link className="nav-link" to="/calendar" onClick={onToggle}>
               <i className="bi bi-calendar2-event-fill me-2"></i> Calendar
             </Link>
@@ -49,7 +53,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
           </li>
           <li className="nav-item">
             <Link className="nav-link" to="/import-excel" onClick={onToggle}>
-              <i className="bi bi-file-earmark-arrow-up-fill me-2"></i> Import Excel
+              <i className="bi bi-file-earmark-arrow-up-fill me-2"></i> Import
+              Excel
             </Link>
           </li>
         </ul>

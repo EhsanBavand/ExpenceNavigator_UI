@@ -1,0 +1,426 @@
+//////////////// ------------- It makes the bar half with numbers. ------------- \\\\\\\\\\\\\\\\
+
+// import React from "react";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   Tooltip,
+//   ResponsiveContainer,
+// } from "recharts";
+
+// const CustomTooltip = ({ active, payload }) => {
+//   if (!active || !payload?.length) return null;
+//   const item = payload[0].payload;
+
+//   return (
+//     <div
+//       style={{
+//         background: "#fff",
+//         border: "1px solid #ccc",
+//         padding: 8,
+//         borderRadius: 6,
+//         fontSize: 13,
+//       }}
+//     >
+//       <div style={{ fontWeight: 600 }}>{item.CategoryName}</div>
+//       <div>Budget: ${item.Budget.toFixed(2)}</div>
+//       <div>Expense: ${item.TotalExpense.toFixed(2)}</div>
+//     </div>
+//   );
+// };
+
+// const getColor = (budget, expense) => {
+//   if (budget === 0 && expense > 0) return "#F44336"; // red
+//   const ratio = budget > 0 ? expense / budget : 0;
+
+//   if (ratio >= 1) return "#F44336"; // red
+//   if (ratio >= 0.8) return "#FFC107"; // yellow
+//   return "#4CAF50"; // green
+// };
+
+// export default function CategoryChart({ data }) {
+//   if (!data || data.length === 0) return <div>No category data to display</div>;
+
+//   const scaledData = data.map((item) => {
+//     const budget = item.Budget || 0;
+//     const expense = item.TotalExpense || 0;
+
+//     return {
+//       ...item,
+//       ScaledBudget: Math.pow(budget, 0.7),
+//       ScaledExpense: Math.pow(expense, 0.7),
+//       barColor: getColor(budget, expense),
+//     };
+//   });
+
+//   const maxScaled = Math.max(
+//     ...scaledData.map((d) => Math.max(d.ScaledBudget, d.ScaledExpense)),
+//   );
+
+//   const tickFormatter = (value) => {
+//     const originalValue = Math.pow(value, 1 / 0.7);
+//     if (originalValue >= 1000)
+//       return `${Math.round(originalValue / 100) / 10}k`;
+//     return Math.round(originalValue);
+//   };
+
+//   return (
+//     <div className="card shadow-sm mt-4 w-100">
+//       <div className="card-body">
+//         <h5 className="card-title mb-4">Category Expenses</h5>
+
+//         <div style={{ width: "100%", height: 550 }}>
+//           <ResponsiveContainer width="100%" height="100%">
+//             <BarChart
+//               layout="vertical"
+//               data={scaledData}
+//               margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+//             >
+//               <XAxis
+//                 type="number"
+//                 domain={[0, maxScaled]}
+//                 tickFormatter={tickFormatter}
+//               />
+
+//               <YAxis
+//                 type="category"
+//                 dataKey="CategoryName"
+//                 width={160}
+//                 interval={0}
+//                 tick={{ fontSize: 14 }}
+//                 axisLine={false}
+//                 tickLine={false}
+//               />
+
+//               <Tooltip cursor={false} content={<CustomTooltip />} />
+
+//               {/* ONE BAR with custom shape */}
+//               <Bar
+//                 dataKey="ScaledExpense"
+//                 barSize={24}
+//                 isAnimationActive={false}
+//                 shape={(props) => {
+//                   const { x, y, width, height, payload } = props;
+
+//                   const budgetWidth = payload.ScaledBudget;
+//                   const expenseWidth = payload.ScaledExpense;
+//                   const color = payload.barColor;
+
+//                   // Gray background (budget)
+//                   const budgetRect = (
+//                     <rect
+//                       x={x}
+//                       y={y}
+//                       width={budgetWidth}
+//                       height={height}
+//                       fill="#BDBDBD"
+//                       rx={4}
+//                     />
+//                   );
+
+//                   // Colored foreground (expense)
+//                   const expenseRect = (
+//                     <rect
+//                       x={x}
+//                       y={y}
+//                       width={expenseWidth}
+//                       height={height}
+//                       fill={color}
+//                       rx={4}
+//                     />
+//                   );
+
+//                   return (
+//                     <g>
+//                       {budgetRect}
+//                       {expenseRect}
+//                     </g>
+//                   );
+//                 }}
+//               />
+//             </BarChart>
+//           </ResponsiveContainer>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+//////////////// ------------- It makes the bar half without numbers.------------- \\\\\\\\\\\\\\\\
+
+// import React from "react";
+// import {
+//   BarChart,
+//   Bar,
+//   XAxis,
+//   YAxis,
+//   Tooltip,
+//   ResponsiveContainer,
+// } from "recharts";
+
+// const CustomTooltip = ({ active, payload }) => {
+//   if (!active || !payload?.length) return null;
+//   const item = payload[0].payload;
+
+//   return (
+//     <div
+//       style={{
+//         background: "#fff",
+//         border: "1px solid #ccc",
+//         padding: 8,
+//         borderRadius: 6,
+//         fontSize: 13,
+//       }}
+//     >
+//       <div style={{ fontWeight: 600 }}>{item.CategoryName}</div>
+//       <div>Budget: ${item.Budget.toFixed(2)}</div>
+//       <div>Expense: ${item.TotalExpense.toFixed(2)}</div>
+//     </div>
+//   );
+// };
+
+// const getColor = (budget, expense) => {
+//   if (budget === 0 && expense > 0) return "#F44336"; // red
+//   const ratio = budget > 0 ? expense / budget : 0;
+
+//   if (ratio >= 1) return "#F44336"; // red
+//   if (ratio >= 0.8) return "#FFC107"; // yellow
+//   return "#4CAF50"; // green
+// };
+
+// export default function CategoryChart({ data }) {
+//   if (!data || data.length === 0) return <div>No category data to display</div>;
+
+//   const scaledData = data.map((item) => {
+//     const budget = item.Budget || 0;
+//     const expense = item.TotalExpense || 0;
+
+//     return {
+//       ...item,
+//       ScaledBudget: Math.pow(budget, 0.7),
+//       ScaledExpense: Math.pow(expense, 0.7),
+//       barColor: getColor(budget, expense),
+//     };
+//   });
+
+//   const maxScaled = Math.max(
+//     ...scaledData.map((d) => Math.max(d.ScaledBudget, d.ScaledExpense)),
+//   );
+
+//   const tickFormatter = (value) => {
+//     const originalValue = Math.pow(value, 1 / 0.7);
+//     if (originalValue >= 1000)
+//       return `${Math.round(originalValue / 100) / 10}k`;
+//     return Math.round(originalValue);
+//   };
+
+//   return (
+//     <div className="card shadow-sm mt-4 w-100">
+//       <div className="card-body">
+//         <h5 className="card-title mb-4">Category Expenses</h5>
+
+//         <div style={{ width: "100%", height: 550 }}>
+//           <ResponsiveContainer width="100%" height="100%">
+//             <BarChart
+//               layout="vertical"
+//               data={scaledData}
+//               margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+//             >
+//               <XAxis
+//                 type="number"
+//                 domain={[0, maxScaled]}
+//                 tickFormatter={tickFormatter}
+//                 tick={false}
+//               />
+
+//               <YAxis
+//                 type="category"
+//                 dataKey="CategoryName"
+//                 width={160}
+//                 interval={0}
+//                 tick={{ fontSize: 14 }}
+//                 axisLine={false}
+//                 tickLine={false}
+//               />
+
+//               <Tooltip cursor={false} content={<CustomTooltip />} />
+
+//               <Bar
+//                 dataKey="ScaledExpense"
+//                 barSize={80}
+//                 isAnimationActive={false}
+//                 shape={(props) => {
+//                   const { x, y, width, height, payload } = props;
+
+//                   const budgetWidth = payload.ScaledBudget;
+//                   const expenseWidth = payload.ScaledExpense;
+//                   const color = payload.barColor;
+
+//                   return (
+//                     <g>
+//                       <rect
+//                         x={x}
+//                         y={y}
+//                         width={budgetWidth}
+//                         height={height}
+//                         fill="#BDBDBD"
+//                         rx={4}
+//                       />
+//                       <rect
+//                         x={x}
+//                         y={y}
+//                         width={expenseWidth}
+//                         height={height}
+//                         fill={color}
+//                         rx={4}
+//                       />
+//                     </g>
+//                   );
+//                 }}
+//               />
+//             </BarChart>
+//           </ResponsiveContainer>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+//////////////////////  Subcategory
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+const CustomBar = ({ x, y, width, height, payload, onClick }) => {
+  const budget = Number(payload.Budget || 0);
+  const expense = Number(payload.TotalExpense || 0);
+  const maxVal = Number(payload.MaxValue || 0);
+
+  let fillColor = "#4CAF50";
+
+  if (budget === 0 && expense > 0) fillColor = "#F44336";
+  else {
+    const ratio = budget > 0 ? expense / budget : 0;
+    if (ratio >= 1) fillColor = "#F44336";
+    else if (ratio >= 0.8) fillColor = "#FFC107";
+  }
+
+  const expenseWidth = maxVal > 0 ? (expense / maxVal) * width : 0;
+
+  return (
+    <g onClick={() => onClick(payload.CategoryId)}>
+      <rect x={x} y={y} width={width} height={height} fill="#BDBDBD" rx={4} />
+      {expenseWidth > 0 && (
+        <rect
+          x={x}
+          y={y}
+          width={expenseWidth}
+          height={height}
+          fill={fillColor}
+          rx={4}
+        />
+      )}
+    </g>
+  );
+};
+
+const getColor = (budget, expense) => {
+  if (budget === 0 && expense > 0) return "#F44336"; // red
+  const ratio = budget > 0 ? expense / budget : 0;
+
+  if (ratio >= 1) return "#F44336"; // red
+  if (ratio >= 0.8) return "#FFC107"; // yellow
+  return "#4CAF50"; // green
+};
+
+export default function CategoryChart({ data, onCategoryClick }) {
+  if (!data || data.length === 0) return <div>No category data to display</div>;
+
+  // Add MaxValue for width calculation
+  const chartData = data.map((item) => ({
+    ...item,
+    MaxValue: Math.max(item.Budget, item.TotalExpense),
+  }));
+
+  const maxValue = Math.max(...chartData.map((d) => d.MaxValue));
+
+  return (
+    <div className="card shadow-sm mt-4 mb-4 w-100">
+      <div className="card-body">
+        <h5 className="card-title mb-4">Category Expenses</h5>
+
+        <div style={{ width: "100%", height: 550 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="vertical"
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+            >
+              <XAxis type="number" domain={[0, maxValue]} />
+              <YAxis
+                type="category"
+                dataKey="CategoryName"
+                width={160}
+                interval={0}
+                tick={{ fontSize: 14 }}
+                axisLine={false}
+                tickLine={false}
+              />
+
+              <Tooltip
+                cursor={false}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const item = payload[0].payload;
+
+                  const color = getColor(item.Budget, item.TotalExpense);
+
+                  return (
+                    <div
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #ccc",
+                        padding: 8,
+                        borderRadius: 6,
+                        fontSize: 13,
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>{item.CategoryName}</div>
+
+                      {/* Budget always gray */}
+                      <div style={{ color: "#7f7f7f" }}>
+                        Budget: ${item.Budget.toFixed(2)}
+                      </div>
+
+                      {/* Expense colored */}
+                      <div style={{ color }}>
+                        Expense: ${item.TotalExpense.toFixed(2)}
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+
+              <Bar
+                dataKey="MaxValue"
+                barSize={24}
+                shape={(props) => (
+                  <CustomBar {...props} onClick={onCategoryClick} />
+                )}
+                isAnimationActive={false}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}

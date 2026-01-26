@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FaTrash, FaCheck } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
+import { Modal, Button, Form, Alert } from "react-bootstrap";
 import {
   getCategories,
   getSubCategories,
@@ -19,6 +20,8 @@ import {
   updateSubCategory,
   updatePlace,
   updateExpense,
+  getDashboardSummary,
+  copyExpenseByRange,
 } from "../services/api";
 
 export default function ExpenseManager() {
@@ -85,8 +88,6 @@ export default function ExpenseManager() {
   });
   const [expenses, setExpenses] = useState([]);
   const [categoryIsRecurring, setCategoryIsRecurring] = useState(false);
-  const [placeIsRecurring, setplaceIsRecurring] = useState(true);
-
   const categoryMap = React.useMemo(() => {
     const map = {};
     categories.forEach((c) => {
@@ -104,10 +105,45 @@ export default function ExpenseManager() {
   }, [expenses, categoryMap]);
 
   const [editPlaceCategory, setEditPlaceCategory] = useState("");
-  const [editExpenseItem, setEditExpenseItem] = useState(null);
-  const [subCategoryIsRecurring, setSubCategoryIsRecurring] = useState(false);
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [editingExpenseId, setEditingExpenseId] = useState(null);
+
+  // Show Total Summery
+  const [summary, setSummary] = useState({
+    totalIncome: 0,
+    totalBudget: 0,
+    totalExpenses: 0,
+    remainingIncome: 0,
+    remainingBudget: 0,
+  });
+
+  const fetchSummary = async () => {
+    if (!userId || !selectedMonth || !selectedYear) return;
+
+    try {
+      const data = await getDashboardSummary(
+        userId,
+        parseInt(selectedMonth),
+        parseInt(selectedYear)
+      );
+      setSummary(data);
+    } catch (err) {
+      console.error("Error fetching dashboard summary:", err);
+    }
+  };
+
+  const refreshAll = async () => {
+    await Promise.all([fetchData(), fetchSummary()]);
+  };
+
+  // After your existing useState declarations
+  const [showBudgetPrompt, setShowBudgetPrompt] = useState(false);
+  const [budgetPromptCategory, setBudgetPromptCategory] = useState(null);
+  const [newBudgetAmount, setNewBudgetAmount] = useState("");
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchData();
+    fetchSummary();
+  }, [userId, selectedMonth, selectedYear]);
 
   // Decode JWT to get userId
   useEffect(() => {
@@ -126,11 +162,6 @@ export default function ExpenseManager() {
       console.error("Invalid token", err);
     }
   }, []);
-
-  // useEffect(() => {
-  //   if (!userId) return;
-  //   fetchData();
-  // }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -166,16 +197,19 @@ export default function ExpenseManager() {
     if (!categoryName || !userId) return;
 
     try {
-      const res = await createCategory(
+      await createCategory(
         userId,
         categoryName,
         categoryBudget ? parseFloat(categoryBudget) : 0,
         categoryIsRecurring
       );
 
-      setCategories([...categories, res]);
+      await refreshAll();
+      await fetchSummary();
+
       setCategoryName("");
       setCategoryBudget("");
+      setCategoryIsRecurring(false);
     } catch (err) {
       console.error(err);
       alert("Failed to create category");
@@ -226,12 +260,22 @@ export default function ExpenseManager() {
 
   const handleAddExpense = async (e) => {
     e.preventDefault();
-    if (!userId || !expenseForm.category || !expenseForm.amount) return;
+
+    if (
+      !userId ||
+      !expenseForm.category ||
+      !expenseForm.amount ||
+      !expenseForm.date
+    )
+      return;
+
+    const dateObj = new Date(expenseForm.date);
+    if (isNaN(dateObj)) return;
 
     try {
-      const res = await createExpense({
+      await createExpense({
         userId,
-        date: expenseForm.date, // <-- add this
+        date: expenseForm.date, // yyyy-MM-dd
         categoryId: expenseForm.category,
         subCategoryId: expenseForm.subCategory || null,
         placeId: expenseForm.place || null,
@@ -239,14 +283,19 @@ export default function ExpenseManager() {
         paidFor: expenseForm.paidFor || null,
         itemName: expenseForm.itemName || null,
         note: expenseForm.note || null,
-        isFixed: expenseForm.isFixed || false,
+
+        // ✅ derived (hidden)
+        month: dateObj.getMonth() + 1,
+        year: dateObj.getFullYear(),
+
+        isFixed: expenseForm.isFixed ?? false,
       });
 
-      setExpenses([...expenses, res]);
+      // ✅ single source of truth
+      await refreshAll();
 
-      // Reset form including date
       setExpenseForm({
-        date: "", // <-- reset date
+        date: "",
         category: "",
         subCategory: "",
         place: "",
@@ -280,39 +329,45 @@ export default function ExpenseManager() {
     }
   };
 
-  const handleDelete = async (id, type, userId, month, year) => {
-    if (!id || !userId) return;
+  const handleDelete = async (
+    id,
+    type,
+    userId = null,
+    month = null,
+    year = null
+  ) => {
+    // if (!id || !userId) return;
+    if (!id) return;
 
     try {
       switch (type) {
+        case "expense":
+          await deleteExpense(id);
+          await refreshAll();
+          await fetchSummary();
+          break;
+
         case "category":
-          // await deleteCategory(id);
+          if (!userId || month == null || year == null) {
+            console.warn("Missing params for category delete");
+            return;
+          }
           await deleteCategory(id, userId, month, year);
-          const updatedCategories = await getCategories(userId, month, year);
-          setCategories(updatedCategories);
+          await refreshAll();
           break;
 
         case "subCategory":
           await deleteSubCategory(id);
-          const updatedSubCategories = await getSubCategories(userId);
-          setSubCategories(updatedSubCategories);
+          setSubCategories(await getSubCategories(userId));
           break;
 
         case "place":
           await deletePlace(id);
-          const updatedPlaces = await getPlaces(userId);
-          setPlaces(updatedPlaces);
-          break;
-
-        case "expense":
-          await deleteExpense(id);
-          // const updatedExpenses = await getExpenses(userId);
-          const updatedExpenses = await getExpenses(userId, month, year);
-          setExpenses(updatedExpenses);
+          setPlaces(await getPlaces(userId));
           break;
 
         default:
-          console.warn("Unknown type", type);
+          console.warn("Unknown delete type:", type);
       }
     } catch (err) {
       console.error(err);
@@ -348,7 +403,7 @@ export default function ExpenseManager() {
     if (!editCategoryItem) return;
 
     const payload = {
-      catId: editCategoryItem.catId, // must exist now
+      catId: editCategoryItem.catId,
       userId: editCategoryItem.userId,
       name: editCategoryName,
       budget: editCategoryItem.budget,
@@ -360,13 +415,18 @@ export default function ExpenseManager() {
 
     try {
       await updateCategory(payload);
-      // re-fetch categories after update
+
+      await refreshAll();
+
       const refreshedCategories = await getCategories(
         userId,
         selectedMonth,
         selectedYear
       );
       setCategories(refreshedCategories);
+
+      await fetchSummary(); // ✅ ADD THIS
+
       setEditCategoryModalOpen(false);
     } catch (err) {
       console.error("Failed to update category", err);
@@ -443,39 +503,194 @@ export default function ExpenseManager() {
   };
 
   const saveEditExpense = async (id) => {
-    const rowData = editExpenseForm[id] || {}; // if undefined, use empty object
+    const rowData = editExpenseForm[id] || {};
     const original = expenses.find((e) => e.id === id);
-
     if (!original) return;
+
+    const dateStr =
+      rowData.date ?? (original.date ? original.date.split("T")[0] : null);
+
+    if (!dateStr) return;
+
+    const dateObj = new Date(dateStr);
+    if (isNaN(dateObj)) return;
 
     try {
       const payload = {
         userId,
-        date:
-          rowData.date ?? (original.date ? original.date.split("T")[0] : ""),
+        date: dateStr,
         categoryId: rowData.categoryId ?? original.categoryId,
-        subCategoryId:
-          (rowData.subCategoryId ?? original.subCategoryId) || null,
-        placeId: (rowData.placeId ?? original.placeId) || null,
+        subCategoryId: rowData.subCategoryId ?? original.subCategoryId ?? null,
+        placeId: rowData.placeId ?? original.placeId ?? null,
         amount: parseFloat(rowData.amount ?? original.amount),
-        paidFor: (rowData.paidFor ?? original.paidFor) || null,
-        itemName: (rowData.itemName ?? original.itemName) || null,
+        paidFor: rowData.paidFor ?? original.paidFor ?? null,
+        itemName: rowData.itemName ?? original.itemName ?? null,
         note: rowData.note ?? original.note ?? "",
-        isFixed: (rowData.isFixed ?? original.isFixed) || false,
+        isFixed: rowData.isFixed ?? original.isFixed ?? false,
+
+        // ✅ derived again
+        month: dateObj.getMonth() + 1,
+        year: dateObj.getFullYear(),
       };
 
       await updateExpense(id, payload);
 
-      setExpenses(
-        expenses.map((e) => (e.id === id ? { ...e, ...payload } : e))
-      );
-      // optionally clear form for this row
+      // ✅ DO NOT mutate local state
+      // Expense may move to another month
+      await refreshAll();
+
       setEditExpenseForm((prev) => ({ ...prev, [id]: undefined }));
     } catch (err) {
       console.error("Failed to update expense:", err.response?.data || err);
       alert("Failed to update expense");
     }
   };
+
+  const [categorySort, setCategorySort] = useState({
+    field: "name",
+    asc: true,
+  });
+
+  const handleCategorySort = (field) => {
+    const asc = categorySort.field === field ? !categorySort.asc : true;
+    setCategorySort({ field, asc });
+  };
+
+  const sortedCategories = [...categories].sort((a, b) => {
+    const field = categorySort.field;
+    let valA = a[field];
+    let valB = b[field];
+
+    if (typeof valA === "string") valA = valA.toLowerCase();
+    if (typeof valB === "string") valB = valB.toLowerCase();
+
+    if (valA < valB) return categorySort.asc ? -1 : 1;
+    if (valA > valB) return categorySort.asc ? 1 : -1;
+    return 0;
+  });
+
+  // Sub Category
+  const [subCatSort, setSubCatSort] = useState({ field: "name", asc: true });
+
+  const handleSubCatSort = (field) => {
+    const asc = subCatSort.field === field ? !subCatSort.asc : true;
+    setSubCatSort({ field, asc });
+  };
+
+  const sortedSubCategories = [...subCategories].sort((a, b) => {
+    const field = subCatSort.field; // ✅ use state
+    let valA, valB;
+
+    if (field === "category") {
+      valA = categories.find((c) => c.catId === a.categoryId)?.name || "";
+      valB = categories.find((c) => c.catId === b.categoryId)?.name || "";
+    } else {
+      valA = a[field];
+      valB = b[field];
+    }
+
+    if (typeof valA === "string") valA = valA.toLowerCase();
+    if (typeof valB === "string") valB = valB.toLowerCase();
+
+    if (valA < valB) return subCatSort.asc ? -1 : 1;
+    if (valA > valB) return subCatSort.asc ? 1 : -1;
+    return 0;
+  });
+
+  // Place
+  const [placeSort, setPlaceSort] = useState({ field: "name", asc: true });
+  const sortedPlaces = [...places].sort((a, b) => {
+    let valA = a.name.toLowerCase();
+    let valB = b.name.toLowerCase();
+    return placeSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+  });
+
+  // Expense
+  const [expenseSort, setExpenseSort] = useState({ field: "date", asc: true });
+
+  const sortedExpenseInTable = [...expenses].sort((a, b) => {
+    let valA, valB;
+    switch (expenseSort.field) {
+      case "date":
+        valA = new Date(a.date);
+        valB = new Date(b.date);
+        break;
+      case "category":
+        valA = categories.find((c) => c.catId === a.categoryId)?.name || "";
+        valB = categories.find((c) => c.catId === b.categoryId)?.name || "";
+        break;
+      case "subCategory":
+        valA =
+          subCategories.find((sc) => sc.id === a.subCategoryId)?.name || "";
+        valB =
+          subCategories.find((sc) => sc.id === b.subCategoryId)?.name || "";
+        break;
+      case "place":
+        valA = places.find((p) => p.id === a.placeId)?.name || "";
+        valB = places.find((p) => p.id === b.placeId)?.name || "";
+        break;
+      case "isFixed":
+        // true > false
+        valA = a.isFixed ? 1 : 0;
+        valB = b.isFixed ? 1 : 0;
+        break;
+      default:
+        valA = valB = 0;
+    }
+
+    if (typeof valA === "string") valA = valA.toLowerCase();
+    if (typeof valB === "string") valB = valB.toLowerCase();
+
+    if (valA < valB) return expenseSort.asc ? -1 : 1;
+    if (valA > valB) return expenseSort.asc ? 1 : -1;
+    return 0;
+  });
+
+  const toggleExpenseSort = (field) => {
+    setExpenseSort((prev) => {
+      if (prev.field === field) {
+        return { field, asc: !prev.asc }; // toggle direction
+      }
+      return { field, asc: true }; // new field defaults to ascending
+    });
+  };
+
+  // Generate for Next Month
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const [showGenerateModal, setShowGenerateExpenseModal] = useState(false);
+
+  const [generateRange, setGenerateRange] = useState({
+    fromMonth: selectedMonth,
+    fromYear: selectedYear,
+    toMonth: selectedMonth,
+    toYear: selectedYear,
+  });
+
+  const hasDataToCopy = sortedExpenseInTable.length > 0;
+
+  const buildGeneratePayload = () => ({
+    userId,
+    sourceYear: selectedYear,
+    sourceMonth: selectedMonth,
+    targetFromYear: generateRange.fromYear,
+    targetFromMonth: generateRange.fromMonth,
+    targetToYear: generateRange.toYear,
+    targetToMonth: generateRange.toMonth,
+  });
 
   return (
     <div className="container my-4">
@@ -577,7 +792,7 @@ export default function ExpenseManager() {
                   />
 
                   {/* ✅ Is Recurring */}
-                  <div className="form-check mb-3">
+                  {/* <div className="form-check mb-3">
                     <input
                       type="checkbox"
                       className="form-check-input"
@@ -588,7 +803,7 @@ export default function ExpenseManager() {
                     <label className="form-check-label" htmlFor="isRecurring">
                       Is Recurring
                     </label>
-                  </div>
+                  </div> */}
 
                   <button className="btn btn-primary w-100">
                     Add Category
@@ -621,22 +836,6 @@ export default function ExpenseManager() {
                     onChange={(e) => setSubCategoryName(e.target.value)}
                     required
                   />
-
-                  {/* ✅ Is Recurring */}
-                  {/* <div className="form-check mb-3">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id="isRecurring"
-                      checked={subCategoryIsRecurring}
-                      onChange={(e) =>
-                        setSubCategoryIsRecurring(e.target.checked)
-                      }
-                    />
-                    <label className="form-check-label" htmlFor="isRecurring">
-                      Is Recurring
-                    </label>
-                  </div> */}
                   <button className="btn btn-primary w-100">
                     Add SubCategory
                   </button>
@@ -860,38 +1059,106 @@ export default function ExpenseManager() {
         <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-header bg-info text-white">Tables</div>
-            <div className="card-body">
-              <ul className="nav nav-tabs mb-3">
-                {["category", "subCategory", "place", "expense"].map((tab) => (
-                  <li className="nav-item" key={tab}>
-                    <button
-                      className={`nav-link ${tableTab === tab ? "active" : ""}`}
-                      onClick={() => setTableTab(tab)}
+            <div className="row mb-3">
+              <div className="col-md-4">
+                <div className="card text-center shadow-sm">
+                  <div className="card-body">
+                    <h6 className="text-muted">Total Income</h6>
+                    <h4 className="text-success">${summary.totalIncome}</h4>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-md-4">
+                <div className="card text-center shadow-sm">
+                  <div className="card-body">
+                    <h6 className="text-muted">Total Budget</h6>
+                    <h4 className="text-primary">${summary.totalBudget}</h4>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-md-4">
+                <div className="card text-center shadow-sm">
+                  <div className="card-body">
+                    <h6 className="text-muted">Remaining</h6>
+                    <h4
+                      className={
+                        summary.remainingIncome < 0
+                          ? "text-danger"
+                          : "text-success"
+                      }
                     >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)} Table
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      ${summary.remainingBudget}
+                    </h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card-body">
+              <div className="d-flex justify-content-between mb-0">
+                {/* Left: main table tabs */}
+                <ul className="nav nav-tabs">
+                  {["category", "subCategory", "place", "expense"].map(
+                    (tab) => (
+                      <li className="nav-item" key={tab}>
+                        <button
+                          className={`nav-link ${
+                            tableTab === tab ? "active" : ""
+                          }`}
+                          onClick={() => setTableTab(tab)}
+                        >
+                          {tab.charAt(0).toUpperCase() + tab.slice(1)} Table
+                        </button>
+                      </li>
+                    )
+                  )}
+                </ul>
+
+                {/* Generate Next Month */}
+                <button
+                  className={`nav-link fw-bold ${
+                    tableTab === "copyNextMonth"
+                      ? "text-success border border-success"
+                      : "text-success"
+                  }`}
+                  style={{
+                    borderRadius: "0.25rem",
+                    backgroundColor: "transparent",
+                    borderWidth: tableTab === "copyNextMonth" ? "2px" : "1px",
+                    border: "1px solid green",
+                    padding: "0px 5px",
+                  }}
+                  onClick={() => setShowGenerateExpenseModal(true)}
+                >
+                  Copy Expenses Next Month
+                </button>
+              </div>
 
               {/* Category Table */}
               {tableTab === "category" && (
                 <table className="table table-bordered table-sm">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Budget</th>
-                      <th>Recurring</th>
+                      {/* <th>Name</th>
+                      <th>Budget</th> */}
+                      <th onClick={() => handleCategorySort("name")}>Name</th>
+                      <th onClick={() => handleCategorySort("budget")}>
+                        Budget
+                      </th>
+                      {/* <th>Recurring</th> */}
                       <th>Active</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {categories.map((cat) => (
+                    {/* {categories.map((cat) => ( */}
+                    {sortedCategories.map((cat) => (
                       <tr key={cat.id}>
                         <td>{cat.name}</td>
                         <td>{cat.budget}</td>
-                        <td>{cat.isRecurring ? "Yes" : "No"}</td>
+                        {/* <td>{cat.isRecurring ? "Yes" : "No"}</td> */}
                         <td>{cat.isActive ? "Yes" : "No"}</td>
                         <td>
                           <button
@@ -934,22 +1201,28 @@ export default function ExpenseManager() {
                 <table className="table table-bordered table-sm">
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Recurring</th>
+                      {/* <th>Name</th>
+                      <th>Category</th> */}
+                      <th onClick={() => handleSubCatSort("name")}>Name</th>
+                      <th onClick={() => handleSubCatSort("category")}>
+                        Category
+                      </th>
+
+                      {/* <th>Recurring</th> */}
                       <th>Active</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {subCategories.map((sc) => (
+                    {/* {subCategories.map((sc) => ( */}
+                    {sortedSubCategories.map((sc) => (
                       <tr key={sc.id}>
                         <td>{sc.name}</td>
                         <td>
                           {categories.find((c) => c.catId === sc.categoryId)
                             ?.name || "-"}
                         </td>
-                        <td>{sc.isRecurring ? "Yes" : "No"}</td>
+                        {/* <td>{sc.isRecurring ? "Yes" : "No"}</td> */}
                         <td>{sc.isActive ? "Yes" : "No"}</td>
                         <td>
                           <button
@@ -991,23 +1264,31 @@ export default function ExpenseManager() {
                 <table className="table table-bordered table-sm">
                   <thead>
                     <tr>
-                      <th>Name</th>
+                      {/* <th>Name</th> */}
                       {/* <th>Category</th> */}
-                      <th>Recurring</th>
+                      {/* <th>Recurring</th> */}
                       {/* <th>SubCategory</th> */}
+                      <th
+                        onClick={() =>
+                          setPlaceSort({ field: "name", asc: !placeSort.asc })
+                        }
+                      >
+                        Name
+                      </th>
                       <th>Active</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {places.map((p) => (
+                    {/* {places.map((p) => ( */}
+                    {sortedPlaces.map((p) => (
                       <tr key={p.id}>
                         <td>{p.name}</td>
                         {/* <td>
                           {categories.find((c) => c.catId === p.categoryId)
                             ?.name || "-"}
                         </td> */}
-                        <td>{p.isRecurring ? "Yes" : "No"}</td>
+                        {/* <td>{p.isRecurring ? "Yes" : "No"}</td> */}
                         {/* <td>{subCategories.find(sc => sc.id === p.subCategoryId)?.name || "-"}</td> */}
                         <td>{p.isActive ? "Yes" : "No"}</td>
                         <td>
@@ -1050,20 +1331,69 @@ export default function ExpenseManager() {
                 <table className="table table-borderless">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      {/* <th>Date</th>
                       <th>Category</th>
                       <th>SubCategory</th>
-                      <th>Place</th>
+                      <th>Place</th> */}
+                      <th
+                        onClick={() =>
+                          setExpenseSort({
+                            field: "date",
+                            asc: !expenseSort.asc,
+                          })
+                        }
+                      >
+                        Date
+                      </th>
+                      <th
+                        onClick={() =>
+                          setExpenseSort({
+                            field: "category",
+                            asc: !expenseSort.asc,
+                          })
+                        }
+                      >
+                        Category
+                      </th>
+                      <th
+                        onClick={() =>
+                          setExpenseSort({
+                            field: "subCategory",
+                            asc: !expenseSort.asc,
+                          })
+                        }
+                      >
+                        SubCategory
+                      </th>
+                      <th
+                        onClick={() =>
+                          setExpenseSort({
+                            field: "place",
+                            asc: !expenseSort.asc,
+                          })
+                        }
+                      >
+                        Place
+                      </th>
                       <th>Amount</th>
                       <th>Paid For</th>
                       <th>Item Name</th>
                       <th>Note</th>
-                      <th>Fixed</th>
+                      {/* <th>Fixed</th> */}
+                      <th
+                        onClick={() => toggleExpenseSort("isFixed")}
+                        style={{ cursor: "pointer" }}
+                      >
+                        Fixed{" "}
+                        {expenseSort.field === "isFixed" && expenseSort.asc}
+                      </th>
+
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedExpenses.map((exp) => {
+                    {/* {sortedExpenses.map((exp) => { */}
+                    {sortedExpenseInTable.map((exp) => {
                       const row = editExpenseForm[exp.id] || {}; // ensure object exists
 
                       return (
@@ -1271,6 +1601,78 @@ export default function ExpenseManager() {
             </div>
           </div>
         </div>
+
+        {showBudgetPrompt && budgetPromptCategory && (
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    Set Budget for {budgetPromptCategory.name}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowBudgetPrompt(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    You just added an expense to{" "}
+                    <strong>{budgetPromptCategory.name}</strong>
+                    but this category has no budget set for {selectedMonth}/
+                    {selectedYear}.
+                  </p>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Enter budget amount"
+                    value={newBudgetAmount}
+                    onChange={(e) => setNewBudgetAmount(e.target.value)}
+                    min="0"
+                  />
+                </div>
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowBudgetPrompt(false)}
+                  >
+                    Not now
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={async () => {
+                      if (!newBudgetAmount || !budgetPromptCategory) return;
+
+                      try {
+                        await updateCategory({
+                          catId: budgetPromptCategory.catId,
+                          userId: budgetPromptCategory.userId,
+                          name: budgetPromptCategory.name,
+                          budget: parseFloat(newBudgetAmount),
+                          isActive: budgetPromptCategory.isActive,
+                          isRecurring: budgetPromptCategory.isRecurring,
+                          month: selectedMonth,
+                          year: selectedYear,
+                        });
+
+                        await refreshAll(); // refresh categories & summary
+                        setShowBudgetPrompt(false);
+                        setNewBudgetAmount("");
+                        setBudgetPromptCategory(null);
+                      } catch (err) {
+                        console.error("Failed to update budget", err);
+                        alert("Failed to update budget");
+                      }
+                    }}
+                  >
+                    Save Budget
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ---------------- Modals ---------------- */}
@@ -1670,22 +2072,6 @@ export default function ExpenseManager() {
                     />
                   </div>
 
-                  {/* Paid For */}
-                  {/* <div className="col-6">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Paid For"
-                      value={editExpenseForm.paidFor}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          paidFor: e.target.value,
-                        })
-                      }
-                    />
-                  </div> */}
-
                   {/* Note */}
                   <div className="col-12">
                     <textarea
@@ -1735,6 +2121,136 @@ export default function ExpenseManager() {
           </div>
         </div>
       )}
+
+      {/* Copy to Next Month Expense */}
+      <Modal
+        show={showGenerateModal}
+        onHide={() => setShowGenerateExpenseModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Copy Expense</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {/* SOURCE MONTH */}
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold">
+              Source Month (searched month)
+            </Form.Label>
+            <Form.Control
+              readOnly
+              value={`${selectedYear} - ${monthNames[selectedMonth - 1]}`}
+            />
+          </Form.Group>
+
+          {!hasDataToCopy && (
+            <Alert variant="warning">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              There are no incomes in this month to copy.
+            </Alert>
+          )}
+
+          {hasDataToCopy && (
+            <>
+              {/* TARGET RANGE */}
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-semibold">Copy to range</Form.Label>
+
+                {/* FROM */}
+                <div className="d-flex gap-2 mb-2">
+                  <Form.Select
+                    value={generateRange.fromMonth}
+                    onChange={(e) =>
+                      setGenerateRange((p) => ({
+                        ...p,
+                        fromMonth: Number(e.target.value),
+                      }))
+                    }
+                  >
+                    {monthNames.map((m, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {m}
+                      </option>
+                    ))}
+                  </Form.Select>
+
+                  <Form.Control
+                    type="number"
+                    value={generateRange.fromYear}
+                    onChange={(e) =>
+                      setGenerateRange((p) => ({
+                        ...p,
+                        fromYear: Number(e.target.value),
+                      }))
+                    }
+                  />
+                </div>
+
+                {/* TO */}
+                <div className="d-flex gap-2">
+                  <Form.Select
+                    value={generateRange.toMonth}
+                    onChange={(e) =>
+                      setGenerateRange((p) => ({
+                        ...p,
+                        toMonth: Number(e.target.value),
+                      }))
+                    }
+                  >
+                    {monthNames.map((m, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {m}
+                      </option>
+                    ))}
+                  </Form.Select>
+
+                  <Form.Control
+                    type="number"
+                    value={generateRange.toYear}
+                    onChange={(e) =>
+                      setGenerateRange((p) => ({
+                        ...p,
+                        toYear: Number(e.target.value),
+                      }))
+                    }
+                  />
+                </div>
+              </Form.Group>
+
+              <Alert variant="info" className="mb-0">
+                Only the Expense displayed for the selected month will be
+                copied. Existing incomes in target months will be skipped
+                automatically.
+              </Alert>
+            </>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowGenerateExpenseModal(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="success"
+            disabled={!hasDataToCopy}
+            onClick={async () => {
+              const payload = buildGeneratePayload();
+              console.log("Generate payload:", payload);
+
+              await copyExpenseByRange(payload); // ✅ now valid
+
+              setShowGenerateExpenseModal(false);
+            }}
+          >
+            Copy
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

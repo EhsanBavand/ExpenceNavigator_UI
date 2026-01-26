@@ -1,0 +1,6 @@
+/* Remove black border (outline) when clicking anywhere in Recharts pie chart */
+.recharts-surface,
+.recharts-surface *,
+.recharts-sector {
+  outline: none !important;
+}

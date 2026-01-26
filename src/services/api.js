@@ -76,7 +76,7 @@ export const updateIncome = async (income) => {
 
     const response = await axios.put(
       "http://localhost:5283/api/income",
-      payload
+      payload,
     );
 
     return response.data;
@@ -116,7 +116,7 @@ export async function updateSource(id, source) {
   try {
     const response = await axios.put(
       `${API_BASE_URL}/IncomeSource/${id}`,
-      source
+      source,
     );
     return response.data;
   } catch (error) {
@@ -145,14 +145,14 @@ export async function deleteSource(id) {
 
 export const getCategories = async (userId, month, year) => {
   const res = await axios.get(
-    `${API_BASE_URL}/Category/${userId}/${month}/${year}`
+    `${API_BASE_URL}/Category/${userId}/${month}/${year}`,
   );
   return res.data;
 };
 
 export const getCategoryById = async (userId, id, month, year) => {
   const res = await axios.get(
-    `${API_BASE_URL}/Category/${userId}/category/${id}/${month}/${year}`
+    `${API_BASE_URL}/Category/${userId}/category/${id}/${month}/${year}`,
   );
   return res.data;
 };
@@ -160,7 +160,7 @@ export const getCategoryById = async (userId, id, month, year) => {
 export const createCategory = async (userId, name, budget, isRecurring) => {
   const encodedName = encodeURIComponent(name); // Important!
   const res = await axios.post(
-    `${API_BASE_URL}/Category/${userId}/${encodedName}/${budget}/${isRecurring}`
+    `${API_BASE_URL}/Category/${userId}/${encodedName}/${budget}/${isRecurring}`,
   );
   return res.data;
 };
@@ -176,7 +176,7 @@ export const deleteCategory = async (id, userId, month, year) => {
   try {
     const res = await axios.delete(
       // `${API_BASE_URL}/Category/${id}`
-      `${API_BASE_URL}/Category/${id}?userId=${userId}&month=${month}&year=${year}`
+      `${API_BASE_URL}/Category/${id}?userId=${userId}&month=${month}&year=${year}`,
     );
     return res.status === 204;
   } catch (error) {
@@ -203,13 +203,13 @@ export const getSubCategoryById = async (id) => {
 export const getSubCategoriesByCategory = async (categoryId) => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/SubCategory/by-category/${categoryId}`
+      `${API_BASE_URL}/SubCategory/by-category/${categoryId}`,
     );
     return response.data;
   } catch (error) {
     console.error(
       `Error fetching subcategories for category ${categoryId}:`,
-      error
+      error,
     );
     throw error;
   }
@@ -229,7 +229,7 @@ export const updateSubCategory = async (id, subcategory) => {
   try {
     const response = await axios.put(
       `${API_BASE_URL}/SubCategory/${id}`,
-      subcategory
+      subcategory,
     );
     return response.data;
   } catch (error) {
@@ -297,7 +297,7 @@ export const deletePlace = async (id) => {
 
 export const getPlacesForDropdown = async (
   categoryId = null,
-  subCategoryId = null
+  subCategoryId = null,
 ) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/Place/placesdropdown`, {
@@ -317,7 +317,7 @@ export const getPlacesForDropdown = async (
 // ----------------- Expense API -----------------
 export const getExpenses = async (userId, month, year) => {
   const res = await axios.get(
-    `${API_BASE_URL}/Expense/${userId}/${month}/${year}`
+    `${API_BASE_URL}/Expense/${userId}/${month}/${year}`,
   );
   return res.data;
 };
@@ -360,4 +360,63 @@ export const deleteExpense = async (id) => {
     console.error(`Error deleting expense ${id}:`, error);
     throw error;
   }
+};
+// Copy From Modal
+export const copyExpenseByRange = (payload) => {
+  console.log("Payload sent to API:", payload);
+  console.log("Payload sent to API:", API_BASE_URL);
+  return axios.post(`${API_BASE_URL}/expense/copy-expense`, payload);
+};
+
+// =====================
+// Dashboard Summary
+// =====================
+// Summery
+export const getDashboardSummary = async (userId, month, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/dashboard/${userId}/${month}/${year}`,
+  );
+  return res.data;
+};
+
+export const getUserCategoryBudgets = async (userId, month, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/Dashboard/UserCategoryBudgets?userId=${userId}&month=${month}&year=${year}`,
+  );
+  console.log(res.data);
+  return res.data;
+};
+
+export const SubCategoriesByCategory = async (catId, userId, month, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/Dashboard/GetSubCategoriesByCategory?catId=${catId}&userId=${userId}&month=${month}&year=${year}`,
+  );
+  console.log(res.data);
+  return res.data;
+};
+
+export const getMonthlySummary = async (userId, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/Dashboard/GetMonthlySummery?userId=${userId}&year=${year}`,
+  );
+  console.log(res.data);
+  return res.data;
+};
+
+// =====================
+// Saving
+// =====================
+
+export const getAllSavingAsync = async (userId, year) => {
+  const res = await axios.get(`${API_BASE_URL}/saving/${userId}/${year}`);
+  console.log(res.data);
+  return res.data;
+};
+
+export const getExtraMoneyByYear = async (userId, year) => {
+  const res = await axios.get(
+    `${API_BASE_URL}/Saving/GetExtraMoneyByYear?userId=${userId}&year=${year}`,
+  );
+  console.log(res.data);
+  return res.data;
 };
