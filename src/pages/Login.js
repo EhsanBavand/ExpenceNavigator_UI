@@ -1,77 +1,284 @@
-import React, { useState } from "react";
-import { login } from "../services/api";
-import { useNavigate, Link } from "react-router-dom";
+// import React, { useState } from "react";
+// import { login } from "../services/api";
+// import { useNavigate, Link } from "react-router-dom";
 
-function Login() {
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
+// function Login() {
+//   const [form, setForm] = useState({ username: "", password: "" });
+//   const [error, setError] = useState("");
+//   const navigate = useNavigate();
+
+//   const handleChange = (e) => {
+//     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     try {
+//       const res = await login(form);
+
+//       localStorage.setItem("token", res.data.token);
+//       localStorage.setItem("userId", res.data.userId); // <-- Add this line
+
+//       navigate("/dashboard");
+//     } catch (err) {
+//       setError(err.response?.data?.message || "Login failed");
+//     }
+//   };
+
+//   return (
+//     <div
+//       className="container mt-5"
+//       style={{ maxWidth: "400px", border: "2px solid red" }}
+//     >
+//       <h2 className="mb-4 text-center">Login</h2>
+//       <form onSubmit={handleSubmit} noValidate>
+//         <div className="mb-3">
+//           <label htmlFor="username" className="form-label">
+//             Username
+//           </label>
+//           <input
+//             id="username"
+//             name="username"
+//             value={form.username}
+//             onChange={handleChange}
+//             className="form-control"
+//             required
+//             autoComplete="username"
+//           />
+//         </div>
+
+//         <div className="mb-3">
+//           <label htmlFor="password" className="form-label">
+//             Password
+//           </label>
+//           <input
+//             id="password"
+//             name="password"
+//             type="password"
+//             value={form.password}
+//             onChange={handleChange}
+//             className="form-control"
+//             required
+//             autoComplete="current-password"
+//           />
+//         </div>
+
+//         {error && <div className="text-danger mb-3">{error}</div>}
+
+//         <button type="submit" className="btn btn-primary w-100">
+//           Login
+//         </button>
+//       </form>
+
+//       <p className="mt-3 text-center">
+//         Don't have an account? <Link to="/register">Register here</Link>
+//       </p>
+//     </div>
+//   );
+// }
+
+// export default Login;
+
+import React, { useState } from "react";
+import { login, register } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import "../CSS/LoginModern.css";
+
+function LoginModern() {
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+
+  const resetForm = () => {
+    setForm({
+      username: "",
+      email: "",
+      password: "",
+    });
+    setError("");
+    setSuccess("");
   };
 
-  const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  /* ================= LOGIN ================= */
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
     try {
-      const res = await login(form);
+      const res = await login({
+        username: form.username,
+        password: form.password,
+      });
 
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.userId); // <-- Add this line
+      localStorage.setItem("userId", res.data.userId);
 
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= REGISTER ================= */
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await register({
+        username: form.username,
+        email: form.email,
+        password: form.password,
+      });
+
+      setSuccess("Account created successfully 🎉 Redirecting to login...");
+
+      setTimeout(() => {
+        resetForm();
+        setIsSignUp(false); // switch to login
+      }, 1500);
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "400px" }}>
-      <h2 className="mb-4 text-center">Login</h2>
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mb-3">
-          <label htmlFor="username" className="form-label">
-            Username
-          </label>
-          <input
-            id="username"
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            className="form-control"
-            required
-            autoComplete="username"
-          />
+    <div className="login-wrapper">
+      <div className={`loginPage ${isSignUp ? "active" : ""}`}>
+        {/* ========== SIGN UP ========== */}
+        <div className="form-container sign-up">
+          <form onSubmit={handleRegister}>
+            <h1>Create Account</h1>
+
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+
+            {error && <p className="error-text">{error}</p>}
+            {success && <p className="success-text">{success}</p>}
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Sign Up"}
+            </button>
+          </form>
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            className="form-control"
-            required
-            autoComplete="current-password"
-          />
+        {/* ========== SIGN IN ========== */}
+        <div className="form-container sign-in">
+          <form onSubmit={handleLogin}>
+            <h1>Sign In</h1>
+
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+
+            {error && <p className="error-text">{error}</p>}
+            {success && <p className="success-text">{success}</p>}
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
         </div>
 
-        {error && <div className="text-danger mb-3">{error}</div>}
+        {/* ========== TOGGLE ========== */}
+        <div className="toggle-container">
+          <div className="toggle">
+            <div className="toggle-panel toggle-left">
+              <h1>Welcome Back!</h1>
+              <p>Enter your personal details to use all site features</p>
+              <button
+                className="hidden"
+                onClick={() => {
+                  resetForm();
+                  setIsSignUp(false);
+                }}
+              >
+                Sign In
+              </button>
+            </div>
 
-        <button type="submit" className="btn btn-primary w-100">
-          Login
-        </button>
-      </form>
-
-      <p className="mt-3 text-center">
-        Don't have an account? <Link to="/register">Register here</Link>
-      </p>
+            <div className="toggle-panel toggle-right">
+              <h1>Hello, Friend!</h1>
+              <p>
+                Register with your personal details to use all site features
+              </p>
+              <button
+                className="hidden"
+                onClick={() => {
+                  resetForm();
+                  setIsSignUp(true);
+                }}
+              >
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-export default Login;
+export default LoginModern;

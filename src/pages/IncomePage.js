@@ -22,13 +22,14 @@ const IncomePage = () => {
   const [error, setError] = useState(null);
   const [editingIncome, setEditingIncome] = useState(null);
   const [formData, setFormData] = useState({
-    incomeSourceId: "",
     owner: "",
+    incomeSourceId: "",
     amount: "",
     date: "",
+    frequency: "", // 👈 force choose
+    month: "", // 👈 force choose
+    year: new Date().getFullYear(),
     isRecurring: false,
-    isEstimated: false,
-    frequency: "None",
     description: "",
   });
 
@@ -37,7 +38,7 @@ const IncomePage = () => {
   // const totalIncome = incomes.reduce((sum, i) => sum + (i.amount || 0), 0);
   const totalIncome = incomeList.reduce(
     (sum, i) => sum + (Number(i.amount) || 0),
-    0
+    0,
   );
 
   // Source modal state
@@ -113,7 +114,7 @@ const IncomePage = () => {
         const response = await getIncomesByMonth(
           userId,
           now.getMonth() + 1,
-          now.getFullYear()
+          now.getFullYear(),
         );
         setIncomeList(response.data);
         setError(null);
@@ -180,13 +181,15 @@ const IncomePage = () => {
   const handleShowAddModal = () => {
     setEditingIncome(null);
     setFormData({
-      sourceType: "",
       owner: "",
+      incomeSourceId: "",
       amount: "",
       date: "",
+      frequency: "", // ✅ MUST be empty
+      month: "", // ✅ MUST be empty
+      year: new Date().getFullYear(),
       isRecurring: false,
       isEstimated: false,
-      frequency: "None",
       description: "",
     });
     setShowModal(true);
@@ -214,66 +217,19 @@ const IncomePage = () => {
     setShowModal(true);
   };
 
-  // const handleSaveIncome = async (e) => {
-  //   e.preventDefault();
-  //   if (!userId) return setError("User is not authenticated");
-
-  //   // Ensure month & year are numbers
-  //   const year = parseInt(formData.year, 10);
-  //   const month = parseInt(formData.month, 10);
-
-  //   const incomePayload = {
-  //     id: formData.id,
-  //     userId,
-  //     owner: formData.owner || userId,
-  //     incomeSourceId: formData.incomeSourceId,
-  //     amount: parseFloat(formData.amount),
-  //     date: formData.date, // optional: you could rebuild it from year/month if you want
-  //     month,
-  //     year,
-  //     isRecurring: formData.frequency !== "None",
-  //     isEstimated: formData.isEstimated,
-  //     frequency: formData.frequency,
-  //     description: formData.description || "",
-  //     createdBy: editingIncome?.createdBy || userId,
-  //     createdDate: editingIncome?.createdDate || new Date().toISOString(),
-  //     modifiedDate: new Date().toISOString(),
-  //   };
-
-  //   try {
-  //     if (editingIncome) {
-  //       console.log("Income payload:", incomePayload);
-  //       console.log("Income ID:", editingIncome.id);
-  //       await updateIncome(incomePayload, editingIncome.id); // <-- pass two arguments
-  //     } else {
-  //       await addIncome(incomePayload);
-  //     }
-
-  //     // Refresh current month after save
-  //     const now = new Date();
-  //     const refresh = await getIncomesByMonth(
-  //       userId,
-  //       now.getMonth() + 1,
-  //       now.getFullYear()
-  //     );
-  //     setIncomeList(refresh.data);
-  //     setError(null);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError("Failed to save income.");
-  //   } finally {
-  //     setShowModal(false);
-  //   }
-  // };
-
   const handleSaveIncome = async (e) => {
     e.preventDefault();
     if (!userId) return setError("User is not authenticated");
 
-    const { month, year } = formData;
+    const month = Number(formData.month);
+    const year = Number(formData.year);
 
-    if (!month || isNaN(month)) {
+    if (!Number.isInteger(month) || month < 1 || month > 12) {
       return setError("Invalid month selected");
+    }
+
+    if (!Number.isInteger(year) || year < 2000) {
+      return setError("Invalid year");
     }
 
     const incomePayload = {
@@ -281,7 +237,7 @@ const IncomePage = () => {
       userId,
       owner: formData.owner || userId,
       incomeSourceId: formData.incomeSourceId,
-      amount: parseFloat(formData.amount),
+      amount: Number(formData.amount),
       date: formData.date,
       month,
       year,
@@ -305,8 +261,9 @@ const IncomePage = () => {
       const refresh = await getIncomesByMonth(
         userId,
         now.getMonth() + 1,
-        now.getFullYear()
+        now.getFullYear(),
       );
+
       setIncomeList(refresh.data);
       setError(null);
     } catch (err) {
@@ -325,7 +282,7 @@ const IncomePage = () => {
       const response = await getIncomesByMonth(
         userId,
         now.getMonth() + 1,
-        now.getFullYear()
+        now.getFullYear(),
       );
       setIncomeList(response.data);
     } catch {
@@ -333,57 +290,57 @@ const IncomePage = () => {
     }
   };
 
-  // Add for next month
-  const handleGenerateNextMonth = async () => {
-    if (!userId) return setError("User is not authenticated");
+  // // Add for next month
+  // const handleGenerateNextMonth = async () => {
+  //   if (!userId) return setError("User is not authenticated");
 
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `/api/incomes/generate-next-month/${userId}`,
-        { method: "POST" }
-      );
-      const data = await response.json();
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch(
+  //       `/api/incomes/generate-next-month/${userId}`,
+  //       { method: "POST" },
+  //     );
+  //     const data = await response.json();
 
-      // Refresh current month to include generated incomes if needed
-      const now = new Date();
-      const refresh = await getIncomesByMonth(
-        userId,
-        now.getMonth() + 1,
-        now.getFullYear()
-      );
-      setIncomeList(refresh.data);
+  //     // Refresh current month to include generated incomes if needed
+  //     const now = new Date();
+  //     const refresh = await getIncomesByMonth(
+  //       userId,
+  //       now.getMonth() + 1,
+  //       now.getFullYear(),
+  //     );
+  //     setIncomeList(refresh.data);
 
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to generate next month incomes.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setError(null);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Failed to generate next month incomes.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const handleDuplicateIncome = async (id) => {
-    try {
-      await duplicateIncome(id);
-      // const response = await getIncomes(userId);
-      const now = new Date();
-      const response = await getIncomesByMonth(
-        userId,
-        now.getMonth() + 1,
-        now.getFullYear()
-      );
-      setIncomeList(response.data);
-    } catch {
-      setError("Failed to duplicate income.");
-    }
-  };
+  // const handleDuplicateIncome = async (id) => {
+  //   try {
+  //     await duplicateIncome(id);
+  //     // const response = await getIncomes(userId);
+  //     const now = new Date();
+  //     const response = await getIncomesByMonth(
+  //       userId,
+  //       now.getMonth() + 1,
+  //       now.getFullYear(),
+  //     );
+  //     setIncomeList(response.data);
+  //   } catch {
+  //     setError("Failed to duplicate income.");
+  //   }
+  // };
 
-  // Logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  };
+  // // Logout
+  // const handleLogout = () => {
+  //   localStorage.removeItem("token");
+  //   window.location.href = "/login";
+  // };
 
   // Source modal handlers
   const handleShowAddSourceModal = () => {
@@ -422,7 +379,7 @@ const IncomePage = () => {
           sourceType:
             response.data.find((s) => s.id === income.incomeSourceId)?.name ||
             income.sourceType,
-        }))
+        })),
       );
 
       setError(null);
@@ -471,7 +428,7 @@ const IncomePage = () => {
       const response = await getIncomesByMonth(
         userId,
         selectedMonth,
-        selectedYear
+        selectedYear,
       );
       setIncomeList(response.data);
       setError(null);
@@ -718,14 +675,6 @@ const IncomePage = () => {
                       >
                         <i className="bi bi-pencil" title="Edit Income"></i>
                       </Button>
-                      {/* <Button
-                        variant="outline-success"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleDuplicateIncome(income.id)}
-                      >
-                        <i className="bi bi-files" title="Duplicate Income"></i>
-                      </Button> */}
                       <Button
                         variant="outline-danger"
                         size="sm"
@@ -757,13 +706,14 @@ const IncomePage = () => {
         </div>
       )}
       {/* Income Add/Edit Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Form onSubmit={handleSaveIncome}>
           <Modal.Header closeButton>
             <Modal.Title>
               {editingIncome ? "Edit Income" : "Add New Income"}
             </Modal.Title>
           </Modal.Header>
+
           <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>Owner</Form.Label>
@@ -774,7 +724,6 @@ const IncomePage = () => {
                 required
               />
             </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Source Type</Form.Label>
               <Form.Select
@@ -783,7 +732,7 @@ const IncomePage = () => {
                 onChange={handleFormChange}
                 required
               >
-                <option value="">Select Source</option>
+                <option value="">Choose source</option>
                 {sourceList.map((source) => (
                   <option key={source.id} value={source.id}>
                     {source.name}
@@ -791,13 +740,13 @@ const IncomePage = () => {
                 ))}
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Amount</Form.Label>
               <Form.Control
                 name="amount"
                 type="number"
                 step="0.01"
+                min="0"
                 value={formData.amount}
                 onChange={handleFormChange}
                 required
@@ -813,20 +762,25 @@ const IncomePage = () => {
                 required
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Recurrence</Form.Label>
-              <Form.Select
-                name="frequency"
-                value={formData.frequency}
-                onChange={handleFormChange}
-              >
-                <option value="None">One-time</option>
-                <option value="Weekly">Weekly</option>
-                <option value="ByWeekly">By Weekly</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Yearly">Yearly</option>
-              </Form.Select>
-            </Form.Group>
+
+            <Form.Select
+              className="mb-3"
+              name="frequency"
+              value={formData.frequency}
+              onChange={handleFormChange}
+              required
+            >
+              <option value="" disabled>
+                Choose recurrence
+              </option>
+              <option value="None">One-time</option>
+              <option value="Weekly">Weekly</option>
+              <option value="ByWeekly">By Weekly</option>
+              <option value="Monthly">Monthly</option>
+              <option value="Yearly">Yearly</option>
+            </Form.Select>
+
+            {/* Month */}
             <Form.Group className="mb-3">
               <Form.Label>Month</Form.Label>
               <Form.Select
@@ -835,6 +789,7 @@ const IncomePage = () => {
                 onChange={handleFormChange}
                 required
               >
+                <option value="">Choose month</option>
                 {[
                   "January",
                   "February",
@@ -856,17 +811,20 @@ const IncomePage = () => {
               </Form.Select>
             </Form.Group>
 
+            {/* Year */}
             <Form.Group className="mb-3">
               <Form.Label>Year</Form.Label>
               <Form.Control
                 name="year"
                 type="number"
+                min="2000"
                 value={formData.year}
                 onChange={handleFormChange}
                 required
               />
             </Form.Group>
 
+            {/* Recurring checkbox (optional visual indicator) */}
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
@@ -876,6 +834,8 @@ const IncomePage = () => {
                 onChange={handleFormChange}
               />
             </Form.Group>
+
+            {/* Description */}
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
@@ -887,6 +847,7 @@ const IncomePage = () => {
               />
             </Form.Group>
           </Modal.Body>
+
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowModal(false)}>
               Cancel

@@ -1,683 +1,273 @@
-// import React, { useMemo, useState } from "react";
-
-// // ===== Demo data for Sources (used in table's "Source" column) =====
-// const defaultSavingSources = [
-//   { id: "tfsa", label: "TFSA (Tax-Free Savings Account)" },
-//   { id: "rrsp", label: "RRSP (Retirement Savings)" },
-//   { id: "emergency", label: "Emergency Fund" },
-//   { id: "travel", label: "Travel Fund" },
-// ];
-
-// // ===== Demo items to render in table =====
-// const demoItems = [
-//   // Savings
-//   { id: "tfsa", name: "TFSA", type: "saving", current: 3200, sourceId: "tfsa" },
-//   { id: "rrsp", name: "RRSP", type: "saving", current: 5600, sourceId: "rrsp" },
-//   {
-//     id: "emergency",
-//     name: "Emergency Fund",
-//     type: "saving",
-//     current: 1800,
-//     sourceId: "emergency",
-//   },
-//   {
-//     id: "travel",
-//     name: "Travel Fund",
-//     type: "saving",
-//     current: 400,
-//     sourceId: "travel",
-//   },
-//   // Debts
-//   {
-//     id: "loc",
-//     name: "Line of Credit",
-//     type: "debt",
-//     balanceRemaining: 3500,
-//     target: 3500,
-//     sourceId: "tfsa",
-//   },
-//   {
-//     id: "loan",
-//     name: "Personal Loan",
-//     type: "debt",
-//     balanceRemaining: 7200,
-//     target: 7200,
-//     sourceId: "rrsp",
-//   },
-//   // Goals
-//   {
-//     id: "europe",
-//     name: "Europe Trip",
-//     type: "goal",
-//     current: 900,
-//     target: 2000,
-//     sourceId: "travel",
-//   },
-//   {
-//     id: "laptop",
-//     name: "New Laptop",
-//     type: "goal",
-//     current: 150,
-//     target: 1500,
-//     sourceId: "tfsa",
-//   },
-// ];
-
-// const SavingPage = ({ extraMoney = 650 }) => {
-//   // ===== Year (left) =====
-//   const currentYear = new Date().getFullYear();
-//   const [year, setYear] = useState(String(currentYear));
-
-//   // ===== Sources (used for Source column label lookup) =====
-//   const [savingSources] = useState(defaultSavingSources);
-
-//   // ===== Items to display in the table (mock/demo) =====
-//   const [items, setItems] = useState(demoItems);
-
-//   // ===== Allocations state (per table row) =====
-//   const [allocations, setAllocations] = useState({}); // { [itemId]: number }
-
-//   const totalAllocated = useMemo(
-//     () =>
-//       Object.values(allocations).reduce((sum, v) => sum + (Number(v) || 0), 0),
-//     [allocations],
-//   );
-//   const remaining = Math.max(0, Number(extraMoney) - totalAllocated);
-
-//   const handleAllocChange = (id, value) => {
-//     const n = Number(value);
-//     setAllocations((prev) => ({
-//       ...prev,
-//       [id]: isFinite(n) && n > 0 ? n : 0,
-//     }));
-//   };
-
-//   const handleSave = () => {
-//     if (remaining > 0) {
-//       alert("Allocate all extra money first.");
-//       return;
-//     }
-//     const payload = Object.entries(allocations)
-//       .filter(([, amt]) => Number(amt) > 0)
-//       .map(([itemId, amount]) => ({
-//         itemId,
-//         amount: Number(amount),
-//         year,
-//       }));
-//     console.log("Saving allocations:", payload);
-//     alert("Demo save complete. Check console for the payload.");
-//   };
-
-//   // ===== Utilities =====
-//   const currency = (n) =>
-//     typeof n === "number" && isFinite(n) ? `$${n.toLocaleString()}` : "—";
-
-//   const typeLabel = (t) =>
-//     t === "saving" ? "Saving" : t === "debt" ? "Debt" : "Goal";
-
-//   // ===== Add Item Modal (YOUR full modal) =====
-//   const [showAddModal, setShowAddModal] = useState(false);
-
-//   // Modal fields (as you provided)
-//   const [mItemName, setMItemName] = useState("");
-//   const [mType, setMType] = useState("saving"); // 'saving' | 'goal' | 'debt'
-//   const [mYear, setMYear] = useState(String(currentYear));
-//   const [mTarget, setMTarget] = useState(""); // optional now
-//   const [mCurrentOrBalance, setMCurrentOrBalance] = useState(""); // optional
-//   const [mAddAmount, setMAddAmount] = useState("");
-
-//   const resetModal = () => {
-//     setMItemName("");
-//     setMType("saving");
-//     setMYear(String(year));
-//     setMTarget("");
-//     setMCurrentOrBalance("");
-//     setMAddAmount("");
-//   };
-
-//   const openModal = () => {
-//     resetModal();
-//     setShowAddModal(true);
-//   };
-
-//   // This uses allocations/extraMoney to validate remaining, and
-//   // adds a NEW item plus sets its allocation to mAddAmount.
-//   const handleAddFromModal = (e) => {
-//     e.preventDefault();
-
-//     const name = mItemName.trim();
-//     const addAmt = Number(mAddAmount || 0);
-//     const yr = Number(mYear);
-
-//     // Basic validations
-//     if (!name) {
-//       alert("Item name is required.");
-//       return;
-//     }
-//     if (!["saving", "goal", "debt"].includes(mType)) {
-//       alert("Invalid Type.");
-//       return;
-//     }
-//     if (!yr || yr < 2000 || yr > 2100) {
-//       alert("Please enter a valid Year (2000-2100).");
-//       return;
-//     }
-//     if (!(addAmt > 0)) {
-//       alert("Add Amount must be a positive number.");
-//       return;
-//     }
-
-//     // Calculate remaining including allocations already set
-//     const remainingNow = Math.max(0, Number(extraMoney) - totalAllocated);
-//     if (addAmt > remainingNow) {
-//       alert(
-//         `Add Amount ($${addAmt}) cannot exceed remaining ($${remainingNow}).`,
-//       );
-//       return;
-//     }
-
-//     // Build a unique, URL-safe id based on the name
-//     const baseId = name
-//       .toLowerCase()
-//       .replace(/[^a-z0-9]+/g, "-")
-//       .replace(/(^-+|-+$)/g, "");
-//     const uniqueId = items.some((i) => i.id === baseId)
-//       ? `${baseId}-${Date.now()}`
-//       : baseId;
-
-//     // default source to first source so the Source column shows a label
-//     const defaultSourceId = savingSources[0]?.id;
-
-//     // Create item object according to type
-//     let newItem;
-//     if (mType === "saving") {
-//       newItem = {
-//         id: uniqueId,
-//         name,
-//         type: "saving",
-//         current: mCurrentOrBalance ? Number(mCurrentOrBalance) : 0,
-//         sourceId: defaultSourceId,
-//         year: yr,
-//       };
-//     } else if (mType === "goal") {
-//       newItem = {
-//         id: uniqueId,
-//         name,
-//         type: "goal",
-//         current: mCurrentOrBalance ? Number(mCurrentOrBalance) : 0,
-//         target: mTarget ? Number(mTarget) : undefined,
-//         sourceId: defaultSourceId,
-//         year: yr,
-//       };
-//     } else {
-//       // debt
-//       newItem = {
-//         id: uniqueId,
-//         name,
-//         type: "debt",
-//         balanceRemaining: mCurrentOrBalance
-//           ? Number(mCurrentOrBalance)
-//           : mTarget
-//             ? Number(mTarget)
-//             : undefined,
-//         target: mTarget ? Number(mTarget) : undefined,
-//         sourceId: defaultSourceId,
-//         year: yr,
-//       };
-//     }
-
-//     // Add to table
-//     setItems((prev) => [newItem, ...prev]);
-
-//     // Pre-fill allocation for this new item
-//     setAllocations((prev) => ({
-//       ...prev,
-//       [uniqueId]: addAmt,
-//     }));
-
-//     setShowAddModal(false);
-//     resetModal();
-//   };
-
-//   return (
-//     <div className="container py-3">
-//       {/* ===== Header ===== */}
-//       <div className="d-flex align-items-center mb-3">
-//         <h2 className="m-0 d-flex align-items-center">
-//           <i className="bi bi-piggy-bank-fill me-2"></i>
-//           Saving
-//         </h2>
-//       </div>
-
-//       {/* ===== Top bar: Year (left) | Add Item (right) ===== */}
-//       <div className="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
-//         {/* Left: Year selector */}
-//         <div className="d-flex align-items-end gap-2">
-//           <div>
-//             <label htmlFor="year" className="form-label mb-1">
-//               Year
-//             </label>
-//             <select
-//               id="year"
-//               className="form-select"
-//               value={year}
-//               onChange={(e) => setYear(e.target.value)}
-//               style={{ width: 140 }}
-//             >
-//               <option value={String(currentYear + 1)}>{currentYear + 1}</option>
-//               <option value={String(currentYear)}>{currentYear}</option>
-//               <option value={String(currentYear - 1)}>{currentYear - 1}</option>
-//               <option value={String(currentYear - 2)}>{currentYear - 2}</option>
-//               <option value={String(currentYear - 3)}>{currentYear - 3}</option>
-//             </select>
-//           </div>
-//         </div>
-
-//         {/* Right: Add Item */}
-//         <div className="ms-auto">
-//           <button
-//             type="button"
-//             className="btn btn-outline-secondary"
-//             onClick={openModal}
-//           >
-//             <i className="bi bi-plus-lg me-1"></i>
-//             Add Item
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* ===== Extra Money ===== */}
-//       <div className="mb-3 d-flex align-items-center gap-3">
-//         <span className="badge bg-success fs-6">
-//           Extra Money: <strong className="ms-1">${extraMoney}</strong>
-//         </span>
-//       </div>
-
-//       {/* ===== Items table (with Source column) ===== */}
-//       <div className="table-responsive">
-//         <table className="table align-middle">
-//           <thead>
-//             <tr>
-//               <th>Item</th>
-//               <th>Type</th>
-//               <th>Source</th>
-//               <th className="text-end">Current / Balance</th>
-//               <th className="text-end">Target</th>
-//               <th className="text-end" style={{ width: 200 }}>
-//                 Add Amount ($)
-//               </th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {items.map((item) => {
-//               const value = allocations[item.id] ?? 0;
-
-//               const srcLabel =
-//                 savingSources.find((s) => s.id === item.sourceId)?.label || "—";
-
-//               const currentCol =
-//                 item.type === "debt"
-//                   ? item.balanceRemaining != null
-//                     ? currency(item.balanceRemaining)
-//                     : "—"
-//                   : item.current != null
-//                     ? currency(item.current)
-//                     : "—";
-
-//               const targetCol =
-//                 item.type === "goal" || item.type === "debt"
-//                   ? item.target != null
-//                     ? currency(item.target)
-//                     : "—"
-//                   : "—";
-
-//               return (
-//                 <tr key={item.id}>
-//                   <td>{item.name}</td>
-//                   <td>{typeLabel(item.type)}</td>
-//                   <td>{srcLabel}</td>
-//                   <td className="text-end">{currentCol}</td>
-//                   <td className="text-end">{targetCol}</td>
-//                   <td className="text-end">
-//                     <input
-//                       data-testid={`alloc-input-${item.id}`}
-//                       type="number"
-//                       min={0}
-//                       className="form-control text-end"
-//                       value={value}
-//                       onChange={(e) =>
-//                         handleAllocChange(item.id, e.target.value)
-//                       }
-//                       onBlur={(e) => {
-//                         const n = Number(e.target.value);
-//                         if (!isFinite(n) || n < 0)
-//                           handleAllocChange(item.id, 0);
-//                       }}
-//                     />
-//                   </td>
-//                 </tr>
-//               );
-//             })}
-//           </tbody>
-//         </table>
-//       </div>
-
-//       {remaining > 0 && (
-//         <div className="alert alert-warning mt-2">
-//           You still have <strong>${remaining}</strong> unallocated for {year}.
-//         </div>
-//       )}
-
-//       <div className="d-flex justify-content-end mt-3">
-//         <button
-//           data-testid="save-allocations"
-//           className="btn btn-primary"
-//           onClick={handleSave}
-//           disabled={remaining > 0}
-//           title={
-//             remaining > 0
-//               ? "Allocate all extra money first"
-//               : "Save allocations"
-//           }
-//         >
-//           Save All Allocations
-//         </button>
-//       </div>
-
-//       {/* ===== YOUR modal plugged in & wired ===== */}
-//       {showAddModal && (
-//         <>
-//           <div
-//             className="modal fade show"
-//             style={{ display: "block" }}
-//             tabIndex="-1"
-//             role="dialog"
-//             aria-modal="true"
-//           >
-//             <div className="modal-dialog">
-//               <div className="modal-content">
-//                 <form onSubmit={handleAddFromModal}>
-//                   <div className="modal-header">
-//                     <h5 className="modal-title">Add Item</h5>
-//                     <button
-//                       type="button"
-//                       className="btn-close"
-//                       onClick={() => setShowAddModal(false)}
-//                       aria-label="Close"
-//                     />
-//                   </div>
-
-//                   <div className="modal-body">
-//                     {/* Item name */}
-//                     <div className="mb-3">
-//                       <label className="form-label">Item</label>
-//                       <input
-//                         className="form-control"
-//                         placeholder="e.g., TFSA, Europe Trip, Line of Credit"
-//                         value={mItemName}
-//                         onChange={(e) => setMItemName(e.target.value)}
-//                         maxLength={80}
-//                         required
-//                       />
-//                     </div>
-
-//                     {/* Type */}
-//                     <div className="mb-3">
-//                       <label className="form-label">Type</label>
-//                       <select
-//                         className="form-select"
-//                         value={mType}
-//                         onChange={(e) => setMType(e.target.value)}
-//                       >
-//                         <option value="saving">Saving</option>
-//                         <option value="goal">Goal</option>
-//                         <option value="debt">Debt</option>
-//                       </select>
-//                     </div>
-//                     {/* Target (optional now) */}
-//                     <div className="mb-3">
-//                       <label className="form-label">Target</label>
-//                       <input
-//                         type="number"
-//                         min={0}
-//                         className="form-control"
-//                         placeholder={
-//                           mType === "goal"
-//                             ? "Goal amount (optional)"
-//                             : mType === "debt"
-//                               ? "Payoff target (optional)"
-//                               : "Optional"
-//                         }
-//                         value={mTarget}
-//                         onChange={(e) => setMTarget(e.target.value)}
-//                       />
-//                     </div>
-
-//                     {/* Current / Balance (optional) */}
-//                     <div className="mb-3">
-//                       <label className="form-label">Current / Balance</label>
-//                       <input
-//                         type="number"
-//                         min={0}
-//                         className="form-control"
-//                         placeholder={
-//                           mType === "debt"
-//                             ? "Current balance (optional)"
-//                             : "Current saved (optional)"
-//                         }
-//                         value={mCurrentOrBalance}
-//                         onChange={(e) => setMCurrentOrBalance(e.target.value)}
-//                       />
-//                     </div>
-
-//                     {/* Add Amount ($) */}
-//                     <div className="mb-1">
-//                       <label className="form-label">Add Amount ($)</label>
-//                       <input
-//                         type="number"
-//                         min={0}
-//                         className="form-control"
-//                         placeholder={`Up to remaining $${remaining}`}
-//                         value={mAddAmount}
-//                         onChange={(e) => setMAddAmount(e.target.value)}
-//                         required
-//                       />
-//                     </div>
-//                   </div>
-//                   <div className="modal-footer">
-//                     <button
-//                       type="button"
-//                       className="btn btn-light"
-//                       onClick={() => setShowAddModal(false)}
-//                     >
-//                       Cancel
-//                     </button>
-//                     <button
-//                       type="submit"
-//                       className="btn btn-primary"
-//                       disabled={remaining <= 0}
-//                     >
-//                       Add
-//                     </button>
-//                   </div>
-//                 </form>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="modal-backdrop fade show" />
-//         </>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default SavingPage;
 import React, { useEffect, useMemo, useState } from "react";
-import { getExtraMoneyByYear, getAllSavingAsync } from "../services/api";
+import {
+  getAllSavingAsync,
+  getExtraMoneyByYear,
+  addSavingAsync,
+  updateSavingAsync,
+  deleteSavingAsync,
+} from "../services/api"; // adjust path if needed
 
-// ===== Static Sources =====
-const defaultSavingSources = [
-  { id: "tfsa", label: "TFSA (Tax-Free Savings Account)" },
-  { id: "rrsp", label: "RRSP (Retirement Savings)" },
-  { id: "emergency", label: "Emergency Fund" },
-  { id: "travel", label: "Travel Fund" },
-];
-
-const SavingPage = ({ userId }) => {
-  // ===== Year =====
+const SavingPage = () => {
+  const userId = localStorage.getItem("userId"); // must be a GUID string
   const currentYear = new Date().getFullYear();
+
+  // ===============================
+  // State
+  // ===============================
   const [year, setYear] = useState(String(currentYear));
-
-  // ===== Data from API =====
-  const [extraMoney, setExtraMoney] = useState(0);
   const [items, setItems] = useState([]);
-
-  // ===== Sources =====
-  const [savingSources] = useState(defaultSavingSources);
-
-  // ===== Allocations =====
+  const [extraMoney, setExtraMoney] = useState(0);
   const [allocations, setAllocations] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  // ===== Load data from API =====
+  // Add Modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [mItemName, setMItemName] = useState("");
+  const [mType, setMType] = useState("saving");
+  const [mBalance, setMBalance] = useState("");
+  const [mTarget, setMTarget] = useState("");
+  const [mAmount, setMAmount] = useState("");
+
+  // Edit Modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [eId, setEId] = useState(null);
+  const [eItemName, setEItemName] = useState("");
+  const [eType, setEType] = useState("saving");
+  const [eBalance, setEBalance] = useState("");
+  const [eTarget, setETarget] = useState("");
+  const [eAmount, setEAmount] = useState("");
+
+  // Delete Modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteItem, setDeleteItem] = useState(null);
+
+  // ===============================
+  // Load data
+  // ===============================
+  const reload = async (uid, yr) => {
+    const [savingData, extraMoneyData] = await Promise.all([
+      getAllSavingAsync(uid, yr),
+      getExtraMoneyByYear(uid, yr),
+    ]);
+
+    setItems(
+      savingData.map((x) => ({
+        id: x.id,
+        name: x.source,
+        type: (String(x.type) || "").toLowerCase(),
+        balance: Number(x.balance) || 0,
+        target: x.target,
+        year: x.year,
+      })),
+    );
+
+    setExtraMoney(Number(extraMoneyData ?? 0));
+    setAllocations({});
+  };
+
   useEffect(() => {
     if (!userId || !year) return;
-
-    const loadData = async () => {
-      try {
-        // Extra Money
-        const extra = await getExtraMoneyByYear(userId, year);
-        setExtraMoney(Number(extra) || 0);
-
-        // Items
-        const data = await getAllSavingAsync(userId, year);
-
-        const normalized = data.map((x) => ({
-          id: x.id,
-          name: x.name,
-          type: x.type, // saving | goal | debt
-          current: x.current ?? 0,
-          balanceRemaining: x.balanceRemaining,
-          target: x.target,
-          sourceId: x.sourceId,
-          year: x.year,
-        }));
-
-        setItems(normalized);
-        setAllocations({});
-      } catch (err) {
-        console.error("Failed to load saving data", err);
-      }
-    };
-
-    loadData();
+    setLoading(true);
+    reload(userId, year)
+      .catch((err) => console.error("Failed to load savings", err))
+      .finally(() => setLoading(false));
   }, [userId, year]);
 
-  // ===== Calculations =====
+  // ===============================
+  // Calculations
+  // ===============================
   const totalAllocated = useMemo(
     () =>
       Object.values(allocations).reduce((sum, v) => sum + (Number(v) || 0), 0),
     [allocations],
   );
-
   const remaining = Math.max(0, extraMoney - totalAllocated);
 
-  // ===== Handlers =====
-  const handleAllocChange = (id, value) => {
-    const n = Number(value);
-    setAllocations((prev) => ({
-      ...prev,
-      [id]: isFinite(n) && n > 0 ? n : 0,
-    }));
+  // ===============================
+  // Handlers
+  // ===============================
+
+  // Save all allocations
+  const handleSaveAllAllocations = async () => {
+    try {
+      const updates = [];
+
+      items.forEach((item) => {
+        const addedAmount = allocations[item.id] ?? 0;
+        if (addedAmount === 0) return;
+
+        const newBalance = (item.balance ?? 0) + addedAmount;
+
+        updates.push(
+          updateSavingAsync(item.id, {
+            source: item.name,
+            type: item.type,
+            balance: newBalance,
+            target: item.target,
+            year: Number(year),
+            userId,
+          }),
+        );
+      });
+
+      if (updates.length === 0) return;
+
+      setLoading(true);
+      await Promise.all(updates);
+
+      setAllocations({});
+      await reload(userId, year);
+    } catch (err) {
+      console.error("Failed to save allocations", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = () => {
-    if (remaining > 0) return;
+  // Add Saving
+  const handleAddSaving = async (e) => {
+    e.preventDefault();
 
-    const payload = Object.entries(allocations)
-      .filter(([, amt]) => amt > 0)
-      .map(([itemId, amount]) => ({
-        itemId,
-        amount,
-        year: Number(year),
-      }));
+    if (!mItemName.trim()) return;
 
-    console.log("Saving allocations:", payload);
-    alert("Saved successfully (check console)");
+    const payload = {
+      source: mItemName.trim(),
+      type: mType,
+      balance: mAmount ? Number(mAmount) : 0,
+      target: mTarget ? Number(mTarget) : null,
+      year: Number(year),
+      userId,
+      createdDate: new Date().toISOString(),
+    };
+
+    try {
+      await addSavingAsync(payload);
+      await reload(userId, year);
+      setShowAddModal(false);
+      setMItemName("");
+      setMType("saving");
+      setMBalance("");
+      setMTarget("");
+      setMAmount("");
+    } catch (err) {
+      console.error("Add saving failed", err);
+    }
   };
 
-  // ===== Utils =====
+  // Edit
+  const openEdit = (item) => {
+    setEId(item.id);
+    setEItemName(item.name || "");
+    setEType(item.type || "saving");
+    setEAmount(item.balance ?? 0); // <-- set eAmount here
+    setETarget(item.target ?? null);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateSaving = async (ev) => {
+    ev.preventDefault();
+    if (!eId) return;
+
+    const payload = {
+      source: eItemName.trim(),
+      type: eType,
+      balance: eAmount !== "" ? Number(eAmount) : null,
+      target: eTarget !== "" ? Number(eTarget) : null,
+      year: Number(year),
+      userId,
+    };
+
+    try {
+      await updateSavingAsync(eId, payload);
+      await reload(userId, year);
+      setShowEditModal(false);
+      setEId(null);
+    } catch (err) {
+      console.error("Update failed", err);
+    }
+  };
+
+  // Delete using modal
+  const confirmDelete = (item) => {
+    setDeleteItem(item);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteItem) return;
+
+    try {
+      setLoading(true);
+      await deleteSavingAsync(deleteItem.id, userId);
+      setShowDeleteModal(false);
+      setDeleteItem(null);
+      await reload(userId, year);
+    } catch (err) {
+      console.error("Delete failed", err);
+      setShowDeleteModal(false);
+      setDeleteItem(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===============================
+  // Utils
+  // ===============================
   const currency = (n) =>
-    typeof n === "number" ? `$${n.toLocaleString()}` : "—";
+    typeof n === "number" && isFinite(n) ? `$${n.toLocaleString()}` : "—";
 
   const typeLabel = (t) =>
     t === "saving" ? "Saving" : t === "debt" ? "Debt" : "Goal";
 
-  // ===== Modal State =====
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [mItemName, setMItemName] = useState("");
-  const [mType, setMType] = useState("saving");
-  const [mTarget, setMTarget] = useState("");
-  const [mCurrentOrBalance, setMCurrentOrBalance] = useState("");
-  const [mAddAmount, setMAddAmount] = useState("");
+  // ===============================
+  // Render
+  // ===============================
+  if (loading) return <div className="p-3">Loading…</div>;
 
-  const resetModal = () => {
-    setMItemName("");
-    setMType("saving");
-    setMTarget("");
-    setMCurrentOrBalance("");
-    setMAddAmount("");
-  };
-
-  const handleAddFromModal = (e) => {
-    e.preventDefault();
-
-    const addAmt = Number(mAddAmount);
-    if (!mItemName || addAmt <= 0 || addAmt > remaining) return;
-
-    const id = `${mItemName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
-
-    const newItem = {
-      id,
-      name: mItemName,
-      type: mType,
-      current: Number(mCurrentOrBalance) || 0,
-      target: Number(mTarget) || undefined,
-      sourceId: savingSources[0].id,
-      year: Number(year),
-    };
-
-    setItems((prev) => [newItem, ...prev]);
-    setAllocations((prev) => ({ ...prev, [id]: addAmt }));
-    setShowAddModal(false);
-    resetModal();
-  };
-
-  // ===== Render =====
   return (
     <div className="container py-3">
-      <h2 className="mb-3">
-        <i className="bi bi-piggy-bank-fill me-2"></i>
-        Saving
-      </h2>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>
+          <i className="bi bi-piggy-bank-fill me-2" />
+          Saving
+        </h2>
+        <button
+          className="btn btn-outline-secondary"
+          onClick={() => setShowAddModal(true)}
+        >
+          <i className="bi bi-plus-lg me-1" />
+          Add Item
+        </button>
+      </div>
 
       {/* Year */}
-      <select
-        className="form-select mb-3"
-        style={{ width: 150 }}
-        value={year}
-        onChange={(e) => setYear(e.target.value)}
-      >
-        {[0, -1, -2, -3, 1].map((y) => (
-          <option key={y} value={currentYear + y}>
-            {currentYear + y}
-          </option>
-        ))}
-      </select>
+      <div className="mb-3">
+        <label className="form-label">Year</label>
+        <select
+          className="form-select"
+          style={{ width: 150 }}
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+        >
+          {[0, -1, -2, -3].map((n) => {
+            const y = currentYear + n;
+            return (
+              <option key={y} value={String(y)}>
+                {y}
+              </option>
+            );
+          })}
+        </select>
+      </div>
 
       {/* Extra Money */}
-      <span className="badge bg-success fs-6 mb-3 d-inline-block">
-        Extra Money: ${extraMoney}
-      </span>
+      <div className="mb-3">
+        <span className="badge bg-success fs-6">
+          Extra Money: <strong>${extraMoney}</strong>
+        </span>
+      </div>
 
       {/* Table */}
       <div className="table-responsive">
@@ -686,96 +276,271 @@ const SavingPage = ({ userId }) => {
             <tr>
               <th>Item</th>
               <th>Type</th>
-              <th>Source</th>
-              <th className="text-end">Current / Balance</th>
-              <th className="text-end">Target</th>
-              <th className="text-end">Add Amount</th>
+              <th className="text-center">Current / Balance</th>
+              <th className="text-center">Target</th>
+              <th className="text-center">Add Amount ($)</th>
+              <th style={{ width: 120 }} className="text-center">
+                Action
+              </th>
             </tr>
           </thead>
+
           <tbody>
-            {items.map((item) => (
-              <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>{typeLabel(item.type)}</td>
-                <td>
-                  {savingSources.find((s) => s.id === item.sourceId)?.label ||
-                    "—"}
-                </td>
-                <td className="text-end">
-                  {item.type === "debt"
-                    ? currency(item.balanceRemaining)
-                    : currency(item.current)}
-                </td>
-                <td className="text-end">{currency(item.target)}</td>
-                <td>
-                  <input
-                    type="number"
-                    min={0}
-                    className="form-control text-end"
-                    value={allocations[item.id] || ""}
-                    onChange={(e) => handleAllocChange(item.id, e.target.value)}
-                  />
-                </td>
-              </tr>
-            ))}
+            {items.map((item) => {
+              const value = allocations[item.id] ?? 0;
+              const currentCol = currency(item.balance ?? 0);
+              const targetCol =
+                item.target != null ? currency(item.target) : "—";
+
+              return (
+                <tr key={item.id}>
+                  <td>{item.name}</td>
+                  <td className="text-start">{typeLabel(item.type)}</td>
+                  <td className="text-center">{currentCol}</td>
+                  <td className="text-center">{targetCol}</td>
+
+                  <td className="text-center" style={{ width: 100 }}>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm text-center inoutAmounts"
+                      value={value}
+                      onChange={(e) =>
+                        setAllocations((prev) => ({
+                          ...prev,
+                          [item.id]: Number(e.target.value) || 0,
+                        }))
+                      }
+                      style={{ maxWidth: 80, margin: "0 auto" }} // small and centered
+                    />
+                  </td>
+
+                  <td className="text-center">
+                    <button
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() => openEdit(item)}
+                      title="Edit"
+                    >
+                      <i className="bi bi-pencil-square" />
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => confirmDelete(item)}
+                      title="Delete"
+                    >
+                      <i className="bi bi-trash" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
+      {/* Save Allocations */}
       {remaining > 0 && (
-        <div className="alert alert-warning">
-          Remaining: <strong>${remaining}</strong>
+        <div className="d-flex justify-content-between align-items-center alert alert-warning">
+          <span>
+            You still have <strong>${remaining}</strong> unallocated.
+          </span>
+          <button
+            className="btn btn-success"
+            onClick={handleSaveAllAllocations}
+            disabled={totalAllocated === 0}
+          >
+            Save All Allocations
+          </button>
         </div>
       )}
 
-      <button
-        className="btn btn-primary float-end"
-        disabled={remaining > 0}
-        onClick={handleSave}
-      >
-        Save All Allocations
-      </button>
-
-      {/* Add Item Modal */}
+      {/* Add Modal */}
       {showAddModal && (
         <>
           <div className="modal fade show" style={{ display: "block" }}>
             <div className="modal-dialog">
-              <form className="modal-content" onSubmit={handleAddFromModal}>
+              <div className="modal-content">
+                <form onSubmit={handleAddSaving}>
+                  <div className="modal-header">
+                    <h5 className="modal-title">Add Item</h5>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      onClick={() => setShowAddModal(false)}
+                    />
+                  </div>
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <label className="form-label">Item Name</label>
+                      <input
+                        className="form-control"
+                        value={mItemName}
+                        onChange={(e) => setMItemName(e.target.value)}
+                        required
+                        placeholder="e.g., TFSA, Europe Trip"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Type</label>
+                      <select
+                        className="form-select"
+                        value={mType}
+                        onChange={(e) => setMType(e.target.value)}
+                      >
+                        <option value="saving">Saving</option>
+                        <option value="goal">Goal</option>
+                        <option value="debt">Debt</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Target</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={mTarget}
+                        onChange={(e) => setMTarget(e.target.value)}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Amount</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={mAmount}
+                        onChange={(e) => setMAmount(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      onClick={() => setShowAddModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Add
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" />
+        </>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <>
+          <div className="modal fade show" style={{ display: "block" }}>
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <form onSubmit={handleUpdateSaving}>
+                  <div className="modal-header">
+                    <h5 className="modal-title">Edit Item</h5>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      onClick={() => setShowEditModal(false)}
+                    />
+                  </div>
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <label className="form-label">Item Name</label>
+                      <input
+                        className="form-control"
+                        value={eItemName}
+                        onChange={(e) => setEItemName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Type</label>
+                      <select
+                        className="form-select"
+                        value={eType}
+                        onChange={(e) => setEType(e.target.value)}
+                      >
+                        <option value="saving">Saving</option>
+                        <option value="goal">Goal</option>
+                        <option value="debt">Debt</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Target</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={eTarget}
+                        onChange={(e) => setETarget(e.target.value)}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Balance</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={eAmount}
+                        onChange={(e) => setEAmount(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      onClick={() => setShowEditModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" />
+        </>
+      )}
+
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <>
+          <div className="modal fade show" style={{ display: "block" }}>
+            <div className="modal-dialog">
+              <div className="modal-content">
                 <div className="modal-header">
-                  <h5>Add Item</h5>
+                  <h5 className="modal-title">Confirm Delete</h5>
                   <button
                     type="button"
                     className="btn-close"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => setShowDeleteModal(false)}
                   />
                 </div>
                 <div className="modal-body">
-                  <input
-                    className="form-control mb-2"
-                    placeholder="Item name"
-                    value={mItemName}
-                    onChange={(e) => setMItemName(e.target.value)}
-                    required
-                  />
-                  <input
-                    className="form-control mb-2"
-                    type="number"
-                    placeholder="Add amount"
-                    value={mAddAmount}
-                    onChange={(e) => setMAddAmount(e.target.value)}
-                    required
-                  />
+                  Are you sure you want to delete{" "}
+                  <strong>{deleteItem?.name}</strong>? This cannot be undone.
                 </div>
                 <div className="modal-footer">
-                  <button className="btn btn-secondary" type="button">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
                     Cancel
                   </button>
-                  <button className="btn btn-primary" type="submit">
-                    Add
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={handleConfirmDelete}
+                  >
+                    Delete
                   </button>
                 </div>
-              </form>
+              </div>
             </div>
           </div>
           <div className="modal-backdrop fade show" />

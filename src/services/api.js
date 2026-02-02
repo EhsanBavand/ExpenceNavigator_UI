@@ -406,17 +406,33 @@ export const getMonthlySummary = async (userId, year) => {
 // =====================
 // Saving
 // =====================
-
 export const getAllSavingAsync = async (userId, year) => {
-  const res = await axios.get(`${API_BASE_URL}/saving/${userId}/${year}`);
-  console.log(res.data);
+  const res = await axios.get(`${API_BASE_URL}/Saving/${userId}/${year}`);
   return res.data;
 };
 
 export const getExtraMoneyByYear = async (userId, year) => {
-  const res = await axios.get(
-    `${API_BASE_URL}/Saving/GetExtraMoneyByYear?userId=${userId}&year=${year}`,
-  );
-  console.log(res.data);
+  const res = await axios.get(`${API_BASE_URL}/Saving/ExtraMoneyByYear`, {
+    params: { userId, year },
+  });
   return res.data;
+};
+
+export const addSavingAsync = async (payload) => {
+  const res = await axios.post(`${API_BASE_URL}/Saving`, payload);
+  return res.data;
+};
+
+// Saving - Update & Delete (NEW)
+// =====================
+export const updateSavingAsync = async (id, payload) => {
+  const res = await axios.put(`${API_BASE_URL}/Saving/${id}`, payload);
+  return res.data; // true/false
+};
+
+export const deleteSavingAsync = async (id, userId) => {
+  const res = await axios.delete(`${API_BASE_URL}/Saving/${id}`, {
+    params: { userId },
+  });
+  return res.data; // true/false
 };
