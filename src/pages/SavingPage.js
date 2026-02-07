@@ -277,6 +277,7 @@ const SavingPage = () => {
               <th>Item</th>
               <th>Type</th>
               <th className="text-center">Current / Balance</th>
+              <th className="text-center">Left to Reach Target</th>
               <th className="text-center">Target</th>
               <th className="text-center">Add Amount ($)</th>
               <th style={{ width: 120 }} className="text-center">
@@ -291,12 +292,17 @@ const SavingPage = () => {
               const currentCol = currency(item.balance ?? 0);
               const targetCol =
                 item.target != null ? currency(item.target) : "—";
+              const remainingToTarget =
+                item.target != null
+                  ? Math.max(0, (item.target ?? 0) - (item.balance ?? 0))
+                  : null;
 
               return (
                 <tr key={item.id}>
                   <td>{item.name}</td>
                   <td className="text-start">{typeLabel(item.type)}</td>
                   <td className="text-center">{currentCol}</td>
+                  <td className="text-center">{remainingToTarget}</td>
                   <td className="text-center">{targetCol}</td>
 
                   <td className="text-center" style={{ width: 100 }}>

@@ -155,15 +155,6 @@ const IncomePage = () => {
     }
   }, [error]);
 
-  // Income form handlers
-  // const handleFormChange = (e) => {
-  //   const { name, value, type, checked } = e.target;
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [name]: type === "checkbox" ? checked : value,
-  //   }));
-  // };
-
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -241,7 +232,8 @@ const IncomePage = () => {
       date: formData.date,
       month,
       year,
-      isRecurring: formData.frequency !== "None",
+      // isRecurring: formData.frequency,
+      isRecurring: formData.isRecurring,
       isEstimated: formData.isEstimated,
       frequency: formData.frequency,
       description: formData.description || "",
@@ -258,10 +250,19 @@ const IncomePage = () => {
       }
 
       const now = new Date();
+      // const refresh = await getIncomesByMonth(
+      //   userId,
+      //   now.getMonth() + 1,
+      //   now.getFullYear(),
+      // );
+
+      setSelectedMonth(formData.month);
+      setSelectedYear(formData.year);
+
       const refresh = await getIncomesByMonth(
         userId,
-        now.getMonth() + 1,
-        now.getFullYear(),
+        formData.month,
+        formData.year,
       );
 
       setIncomeList(refresh.data);
