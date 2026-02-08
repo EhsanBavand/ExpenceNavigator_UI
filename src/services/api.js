@@ -3,10 +3,10 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:5283/api";
 
 export const login = async (credentials) => {
-  console.log("Calling login API:", `${API_BASE_URL}/auth/login`);
-  console.log("Credentials:", credentials);
+  // console.log("Calling login API:", `${API_BASE_URL}/auth/login`);
+  // console.log("Credentials:", credentials);
   const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
-  console.log("Login response:", response);
+  // console.log("Login response:", response);
   return response;
 };
 
@@ -46,17 +46,17 @@ export const addIncome = async (income) => {
       description: income.description || "",
     };
 
-    console.log("Payload sent to API:", payload);
+    // console.log("Payload sent to API:", payload);
 
     const response = await axios.post(`${API_BASE_URL}/income`, payload);
 
-    console.log("Income added:", response.data);
+    // console.log("Income added:", response.data);
     return response.data;
   } catch (error) {
     if (error.response) {
-      console.error("API Error:", error.response.data);
+      // console.error("API Error:", error.response.data);
     } else {
-      console.error("Error:", error.message);
+      // console.error("Error:", error.message);
     }
     throw error;
   }
@@ -72,7 +72,7 @@ export const updateIncome = async (income) => {
       frequency: income.frequency.toString(),
     };
 
-    console.log("Payload sent to API:", payload);
+    // console.log("Payload sent to API:", payload);
 
     const response = await axios.put(
       "http://localhost:5283/api/income",
@@ -81,7 +81,7 @@ export const updateIncome = async (income) => {
 
     return response.data;
   } catch (error) {
-    console.error("API Error:", error.response?.data || error.message);
+    // console.error("API Error:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -96,7 +96,7 @@ export const generateNextMonth = (userId, currentMonth, currentYear) =>
     params: { userId, currentMonth, currentYear },
   });
 export const copyIncomesByRange = (payload) => {
-  console.log("Payload sent to API:", payload);
+  // console.log("Payload sent to API:", payload);
   return axios.post(`${API_BASE_URL}/income/copy-range`, payload);
 };
 
@@ -315,13 +315,20 @@ export const getPlacesForDropdown = async (
 // =====================
 
 // ----------------- Expense API -----------------
-export const getExpenses = async (userId, month, year) => {
+// export const getExpenses = async (userId, month, year) => {
+//   const res = await axios.get(
+//     `${API_BASE_URL}/Expense/${userId}/${month}/${year}`,
+//   );
+//   return res.data;
+// };
+
+export const getExpenses = async (userId, month, year, opts = {}) => {
   const res = await axios.get(
     `${API_BASE_URL}/Expense/${userId}/${month}/${year}`,
+    { signal: opts.signal, timeout: 15000 }
   );
   return res.data;
 };
-
 export const getExpenseById = async (id) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/Expense/${id}`);
@@ -363,8 +370,8 @@ export const deleteExpense = async (id) => {
 };
 // Copy From Modal
 export const copyExpenseByRange = (payload) => {
-  console.log("Payload sent to API:", payload);
-  console.log("Payload sent to API:", API_BASE_URL);
+  // console.log("Payload sent to API:", payload);
+  // console.log("Payload sent to API:", API_BASE_URL);
   return axios.post(`${API_BASE_URL}/expense/copy-expense`, payload);
 };
 
@@ -383,7 +390,7 @@ export const getUserCategoryBudgets = async (userId, month, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Dashboard/UserCategoryBudgets?userId=${userId}&month=${month}&year=${year}`,
   );
-  console.log(res.data);
+  // console.log(res.data);
   return res.data;
 };
 
@@ -391,7 +398,7 @@ export const SubCategoriesByCategory = async (catId, userId, month, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Dashboard/GetSubCategoriesByCategory?catId=${catId}&userId=${userId}&month=${month}&year=${year}`,
   );
-  console.log(res.data);
+  // console.log(res.data);
   return res.data;
 };
 
@@ -399,7 +406,7 @@ export const getMonthlySummary = async (userId, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Dashboard/GetMonthlySummery?userId=${userId}&year=${year}`,
   );
-  console.log(res.data);
+  // console.log(res.data);
   return res.data;
 };
 
