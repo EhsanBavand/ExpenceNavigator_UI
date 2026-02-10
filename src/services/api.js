@@ -101,17 +101,15 @@ export const copyIncomesByRange = (payload) => {
 };
 
 // =====================
-// End Income
+// End Income API
 // =====================
 
-/* For Source Type */
 export const addSource = async (source) => {
   return await axios.post(`${API_BASE_URL}/IncomeSource`, source);
 };
 export const getSources = async (userId) => {
   return await axios.get(`${API_BASE_URL}/IncomeSource/${userId}`);
 };
-// Update source
 export async function updateSource(id, source) {
   try {
     const response = await axios.put(
@@ -124,7 +122,6 @@ export async function updateSource(id, source) {
     throw error;
   }
 }
-// Delete source
 export async function deleteSource(id) {
   try {
     const response = await axios.delete(`${API_BASE_URL}/IncomeSource/${id}`);
@@ -138,10 +135,8 @@ export async function deleteSource(id) {
 /* Expense Page */
 
 // =====================
-// Categories
+// Categories API
 // =====================
-
-// ----------------- Category API -----------------
 
 export const getCategories = async (userId, month, year) => {
   const res = await axios.get(
@@ -149,14 +144,12 @@ export const getCategories = async (userId, month, year) => {
   );
   return res.data;
 };
-
 export const getCategoryById = async (userId, id, month, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Category/${userId}/category/${id}/${month}/${year}`,
   );
   return res.data;
 };
-
 export const createCategory = async (userId, name, budget, isRecurring) => {
   const encodedName = encodeURIComponent(name); // Important!
   const res = await axios.post(
@@ -164,14 +157,12 @@ export const createCategory = async (userId, name, budget, isRecurring) => {
   );
   return res.data;
 };
-
 export const updateCategory = async (categoryDto) => {
   const res = await axios.put(`${API_BASE_URL}/Category`, categoryDto, {
     headers: { "Content-Type": "application/json" },
   });
   return res.data;
 };
-
 export const deleteCategory = async (id, userId, month, year) => {
   try {
     const res = await axios.delete(
@@ -184,12 +175,14 @@ export const deleteCategory = async (id, userId, month, year) => {
     throw error;
   }
 };
+export const copyCategoryBudget = (payload) => {
+  return axios.post(`${API_BASE_URL}/Category/copy-categorybudget`, payload);
+};
 
 // =====================
-// SubCategories
+// SubCategories API
 // =====================
 
-// ----------------- SubCategory API -----------------
 export const getSubCategoryById = async (id) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/SubCategory/${id}`);
@@ -199,7 +192,6 @@ export const getSubCategoryById = async (id) => {
     throw error;
   }
 };
-
 export const getSubCategoriesByCategory = async (categoryId) => {
   try {
     const response = await axios.get(
@@ -214,17 +206,14 @@ export const getSubCategoriesByCategory = async (categoryId) => {
     throw error;
   }
 };
-
 export const getSubCategories = async (userId) => {
   const res = await axios.get(`${API_BASE_URL}/SubCategory?userId=${userId}`);
   return res.data;
 };
-
 export const createSubCategory = async (subCategory) => {
   const res = await axios.post(`${API_BASE_URL}/SubCategory`, subCategory);
   return res.data;
 };
-
 export const updateSubCategory = async (id, subcategory) => {
   try {
     const response = await axios.put(
@@ -237,7 +226,6 @@ export const updateSubCategory = async (id, subcategory) => {
     throw error;
   }
 };
-
 export const deleteSubCategory = async (id) => {
   try {
     const response = await axios.delete(`${API_BASE_URL}/SubCategory/${id}`);
@@ -262,17 +250,14 @@ export const getPlaceById = async (id) => {
     throw error;
   }
 };
-
 export const getPlaces = async (userId) => {
   const res = await axios.get(`${API_BASE_URL}/Place?userId=${userId}`);
   return res.data;
 };
-
 export const createPlace = async (place) => {
   const res = await axios.post(`${API_BASE_URL}/Place`, place);
   return res.data;
 };
-
 export const updatePlace = async (id, place) => {
   try {
     const response = await axios.put(`${API_BASE_URL}/Place/${id}`, place);
@@ -283,7 +268,6 @@ export const updatePlace = async (id, place) => {
     throw error;
   }
 };
-
 export const deletePlace = async (id) => {
   try {
     const response = await axios.delete(`${API_BASE_URL}/Place/${id}`);
@@ -294,7 +278,6 @@ export const deletePlace = async (id) => {
     throw error;
   }
 };
-
 export const getPlacesForDropdown = async (
   categoryId = null,
   subCategoryId = null,
@@ -315,17 +298,11 @@ export const getPlacesForDropdown = async (
 // =====================
 
 // ----------------- Expense API -----------------
-// export const getExpenses = async (userId, month, year) => {
-//   const res = await axios.get(
-//     `${API_BASE_URL}/Expense/${userId}/${month}/${year}`,
-//   );
-//   return res.data;
-// };
 
 export const getExpenses = async (userId, month, year, opts = {}) => {
   const res = await axios.get(
     `${API_BASE_URL}/Expense/${userId}/${month}/${year}`,
-    { signal: opts.signal, timeout: 15000 }
+    { signal: opts.signal, timeout: 15000 },
   );
   return res.data;
 };
@@ -338,7 +315,6 @@ export const getExpenseById = async (id) => {
     throw error;
   }
 };
-
 export const createExpense = async (expense) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/Expense`, expense);
@@ -348,7 +324,6 @@ export const createExpense = async (expense) => {
     throw error;
   }
 };
-
 export const updateExpense = async (id, expense) => {
   try {
     const response = await axios.put(`${API_BASE_URL}/Expense/${id}`, expense);
@@ -358,7 +333,6 @@ export const updateExpense = async (id, expense) => {
     throw error;
   }
 };
-
 export const deleteExpense = async (id) => {
   try {
     const response = await axios.delete(`${API_BASE_URL}/Expense/${id}`);
@@ -368,10 +342,7 @@ export const deleteExpense = async (id) => {
     throw error;
   }
 };
-// Copy From Modal
 export const copyExpenseByRange = (payload) => {
-  // console.log("Payload sent to API:", payload);
-  // console.log("Payload sent to API:", API_BASE_URL);
   return axios.post(`${API_BASE_URL}/expense/copy-expense`, payload);
 };
 
@@ -385,7 +356,6 @@ export const getDashboardSummary = async (userId, month, year) => {
   );
   return res.data;
 };
-
 export const getUserCategoryBudgets = async (userId, month, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Dashboard/UserCategoryBudgets?userId=${userId}&month=${month}&year=${year}`,
@@ -393,7 +363,6 @@ export const getUserCategoryBudgets = async (userId, month, year) => {
   // console.log(res.data);
   return res.data;
 };
-
 export const SubCategoriesByCategory = async (catId, userId, month, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Dashboard/GetSubCategoriesByCategory?catId=${catId}&userId=${userId}&month=${month}&year=${year}`,
@@ -401,7 +370,6 @@ export const SubCategoriesByCategory = async (catId, userId, month, year) => {
   // console.log(res.data);
   return res.data;
 };
-
 export const getMonthlySummary = async (userId, year) => {
   const res = await axios.get(
     `${API_BASE_URL}/Dashboard/GetMonthlySummery?userId=${userId}&year=${year}`,
@@ -417,14 +385,12 @@ export const getAllSavingAsync = async (userId, year) => {
   const res = await axios.get(`${API_BASE_URL}/Saving/${userId}/${year}`);
   return res.data;
 };
-
 export const getExtraMoneyByYear = async (userId, year) => {
   const res = await axios.get(`${API_BASE_URL}/Saving/ExtraMoneyByYear`, {
     params: { userId, year },
   });
   return res.data;
 };
-
 export const addSavingAsync = async (payload) => {
   const res = await axios.post(`${API_BASE_URL}/Saving`, payload);
   return res.data;
@@ -436,7 +402,6 @@ export const updateSavingAsync = async (id, payload) => {
   const res = await axios.put(`${API_BASE_URL}/Saving/${id}`, payload);
   return res.data; // true/false
 };
-
 export const deleteSavingAsync = async (id, userId) => {
   const res = await axios.delete(`${API_BASE_URL}/Saving/${id}`, {
     params: { userId },

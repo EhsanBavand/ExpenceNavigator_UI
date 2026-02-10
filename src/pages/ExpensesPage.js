@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { FaTrash, FaCheck, FaEdit } from "react-icons/fa";
+import { FaTrash, FaCheck, FaEdit, FaPen } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
 import {
@@ -23,6 +22,7 @@ import {
   updateExpense,
   getDashboardSummary,
   copyExpenseByRange,
+  copyCategoryBudget,
 } from "../services/api";
 
 export default function ExpenseManager() {
@@ -59,7 +59,8 @@ export default function ExpenseManager() {
   const [uiMonth, setUiMonth] = useState(selectedMonth);
   const [uiYear, setUiYear] = useState(selectedYear);
   const [editCategoryModalOpen, setEditCategoryModalOpen] = useState(false);
-  const [editSubCategoryModalOpen, setEditSubCategoryModalOpen] = useState(false);
+  const [editSubCategoryModalOpen, setEditSubCategoryModalOpen] =
+    useState(false);
   const [editPlaceModalOpen, setEditPlaceModalOpen] = useState(false);
   const [editCategoryItem, setEditCategoryItem] = useState(null);
   const [editSubCategoryItem, setEditSubCategoryItem] = useState(null);
@@ -148,7 +149,7 @@ export default function ExpenseManager() {
       const decoded = jwtDecode(token);
       const id =
         decoded[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
         ] ||
         decoded.sub ||
         null;
@@ -159,9 +160,9 @@ export default function ExpenseManager() {
   }, []);
 
   useEffect(() => {
-    console.log("Categories:", categories);
-    console.log("SubCategories:", subCategories);
-    console.log("Places:", places);
+    // console.log("Categories:", categories);
+    // console.log("SubCategories:", subCategories);
+    // console.log("Places:", places);
   }, [categories, subCategories, places]);
 
   const fetchData = async () => {
@@ -340,7 +341,7 @@ export default function ExpenseManager() {
           break;
         case "category":
           if (!userId || month == null || year == null) {
-            console.warn("Missing params for category delete");
+            // console.warn("Missing params for category delete");
             return;
           }
           await deleteCategory(id, userId, month, year);
@@ -358,7 +359,7 @@ export default function ExpenseManager() {
           break;
 
         default:
-          console.warn("Unknown delete type:", type);
+        // console.warn("Unknown delete type:", type);
       }
     } catch (err) {
       console.error(err);
@@ -464,7 +465,7 @@ export default function ExpenseManager() {
         isActive: editPlaceItem.isActive,
       };
 
-      console.log("Payload:", payload);
+      // console.log("Payload:", payload);
 
       await updatePlace(editPlaceItem.id, payload);
 
@@ -472,10 +473,10 @@ export default function ExpenseManager() {
         places.map((p) =>
           p.id === editPlaceItem.id
             ? {
-              ...p,
-              name: editPlaceName,
-              isRecurring: editPlaceItem.isRecurring,
-            }
+                ...p,
+                name: editPlaceName,
+                isRecurring: editPlaceItem.isRecurring,
+              }
             : p,
         ),
       );
@@ -507,8 +508,7 @@ export default function ExpenseManager() {
         userId,
         date: dateStr,
         categoryId: rowData.categoryId ?? original.categoryId,
-        subCategoryId:
-          rowData.subCategoryId ?? original.subCategoryId ?? null,
+        subCategoryId: rowData.subCategoryId ?? original.subCategoryId ?? null,
         placeId: rowData.placeId ?? original.placeId ?? null,
         amount: parseFloat(rowData.amount ?? original.amount),
         paidFor: rowData.paidFor ?? original.paidFor ?? null,
@@ -530,7 +530,6 @@ export default function ExpenseManager() {
       alert("Failed to update expense");
     }
   };
-
 
   const [categorySort, setCategorySort] = useState({
     field: "name",
@@ -656,23 +655,34 @@ export default function ExpenseManager() {
   const [showGenerateModal, setShowGenerateExpenseModal] = useState(false);
 
   const [generateRange, setGenerateRange] = useState({
+    sourceMonth: selectedMonth,
+    sourceYear: selectedYear,
+
     fromMonth: selectedMonth,
     fromYear: selectedYear,
+
     toMonth: selectedMonth,
     toYear: selectedYear,
   });
 
   const hasDataToCopy = sortedExpenseInTable.length > 0;
+  const [copyMessage, setCopyMessage] = useState(""); // stores message from API
 
   const buildGeneratePayload = () => ({
     userId,
-    sourceYear: selectedYear,
-    sourceMonth: selectedMonth,
+    sourceYear: generateRange.sourceYear,
+    sourceMonth: generateRange.sourceMonth,
     targetFromYear: generateRange.fromYear,
     targetFromMonth: generateRange.fromMonth,
     targetToYear: generateRange.toYear,
     targetToMonth: generateRange.toMonth,
   });
+  const isInvalidRange =
+    generateRange.sourceYear === generateRange.fromYear &&
+    generateRange.sourceMonth === generateRange.fromMonth;
+  const isFromInvalid = generateRange.fromMonth <= generateRange.sourceMonth;
+
+  const isToInvalid = generateRange.toMonth < generateRange.fromMonth;
 
   const handleSearchByMonth = () => {
     if (!userId) return;
@@ -682,20 +692,76 @@ export default function ExpenseManager() {
     setSelectedYear(uiYear);
   };
 
-  const openEditExpenseModal = (expense) => {
-    setEditExpenseForm({
-      id: expense.id,
-      date: expense.date?.split("T")[0] || "",
-      categoryId: expense.categoryId || "",
-      subCategoryId: expense.subCategoryId || "",
-      placeId: expense.placeId || "",
-      amount: expense.amount || "",
-      paidFor: expense.paidFor || "",
-      itemName: expense.itemName || "",
-      note: expense.note || "",
-      isFixed: expense.isFixed || false,
-    });
+  // const openEditExpenseModal = (expense) => {
+  //   setEditExpenseForm({
+  //     id: expense.id,
+  //     date: expense.date?.split("T")[0] || "",
+  //     categoryId: expense.categoryId || "",
+  //     subCategoryId: expense.subCategoryId || "",
+  //     placeId: expense.placeId || "",
+  //     amount: expense.amount || "",
+  //     paidFor: expense.paidFor || "",
+  //     itemName: expense.itemName || "",
+  //     note: expense.note || "",
+  //     isFixed: expense.isFixed || false,
+  //   });
 
+  //   setEditExpenseModalOpen(true);
+  // };
+
+  // const openEditExpenseModal = (exp) => {
+  //   setEditExpenseForm({
+  //     id: exp.id,
+  //     date: exp.date?.split("T")[0] ?? "",
+  //     categoryId: exp.categoryId ? Number(exp.categoryId) : "",
+  //     subCategoryId: exp.subCategoryId ? Number(exp.subCategoryId) : "",
+  //     placeId: exp.placeId ? Number(exp.placeId) : "",
+  //     amount: exp.amount,
+  //     paidFor: exp.paidFor || "",
+  //     itemName: exp.itemName || "",
+  //     note: exp.note || "",
+  //     isFixed: !!exp.isFixed,
+  //   });
+
+  //   console.log("Exp: " + exp);
+  //   console.log("Model setEditExpenseForm " + setEditExpenseForm);
+
+  //   setEditExpenseModalOpen(true);
+  // };
+
+  // const openEditExpenseModal = (exp) => {
+  //   setEditExpenseForm({
+  //     id: exp.id,
+  //     date: exp.date?.split("T")[0] ?? "",
+  //     // Keep everything as strings for <select>, convert only on save
+  //     categoryId: exp.categoryId ? String(exp.categoryId) : "",
+  //     subCategoryId: exp.subCategoryId ? String(exp.subCategoryId) : "",
+  //     placeId: exp.placeId ? String(exp.placeId) : "",
+  //     amount: exp.amount ?? "",
+  //     paidFor: exp.paidFor || "",
+  //     itemName: exp.itemName || "",
+  //     note: exp.note || "",
+  //     isFixed: !!exp.isFixed,
+  //   });
+  //   console.log("Exp: " + exp);
+  //   console.log("Model setEditExpenseForm " + setEditExpenseForm);
+  //   setEditExpenseModalOpen(true);
+  // };
+
+  // When opening the modal
+  const openEditExpenseModal = (exp) => {
+    setEditExpenseForm({
+      id: exp.id,
+      date: exp.date?.split("T")[0] ?? "",
+      categoryId: exp.categoryId ? String(exp.categoryId) : "",
+      subCategoryId: exp.subCategoryId ? String(exp.subCategoryId) : "",
+      placeId: exp.placeId ? String(exp.placeId) : "",
+      amount: exp.amount != null ? String(exp.amount) : "",
+      paidFor: exp.paidFor || "",
+      itemName: exp.itemName || "",
+      note: exp.note || "",
+      isFixed: !!exp.isFixed,
+    });
     setEditExpenseModalOpen(true);
   };
 
@@ -705,9 +771,22 @@ export default function ExpenseManager() {
   const getSubCategoryName = (id) =>
     subCategories.find((sc) => sc.id === id)?.name || "";
 
-  const getPlaceName = (id) =>
-    places.find((p) => p.id === id)?.name || "";
+  const getPlaceName = (id) => places.find((p) => p.id === id)?.name || "";
 
+  // Modal visibility
+  const [showCopyCategoryBudgetModal, setShowCopyCategoryBudgetModal] =
+    useState(false);
+
+  // Category budget range (source month/year and target months)
+  const [categoryBudgetRange, setCategoryBudgetRange] = useState({
+    sourceMonth: new Date().getMonth() + 1, // default to current month
+    sourceYear: new Date().getFullYear(),
+    fromMonth: new Date().getMonth() + 2 > 12 ? 12 : new Date().getMonth() + 2, // next month
+    toMonth: new Date().getMonth() + 2 > 12 ? 12 : new Date().getMonth() + 2, // next month
+  });
+
+  // API message after copying
+  const [categoryCopyMessage, setCategoryCopyMessage] = useState("");
 
   return (
     <div className="container my-4">
@@ -719,20 +798,7 @@ export default function ExpenseManager() {
               value={uiMonth}
               onChange={(e) => setUiMonth(Number(e.target.value))}
             >
-              {[
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-              ].map((m, index) => (
+              {monthNames.map((m, index) => (
                 <option key={index + 1} value={index + 1}>
                   {m}
                 </option>
@@ -861,7 +927,6 @@ export default function ExpenseManager() {
               )}
               {formTab === "place" && (
                 <form onSubmit={handleAddPlace}>
-
                   {/* Place Name */}
                   <input
                     type="text"
@@ -954,7 +1019,7 @@ export default function ExpenseManager() {
                         name="place"
                         value={expenseForm.place || ""}
                         onChange={handleExpenseChange}
-                      // required
+                        // required
                       >
                         <option value="">Choose a Place</option>
                         {places.map((p) => (
@@ -1033,9 +1098,11 @@ export default function ExpenseManager() {
             </div>
           </div>
         </div>
+        {/* Tables  */}
         <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-header bg-info text-white">Tables</div>
+            {/* Show Summary */}
             <div className="row mb-3">
               <div className="col-md-3">
                 <div className="card text-center shadow-sm">
@@ -1045,7 +1112,6 @@ export default function ExpenseManager() {
                   </div>
                 </div>
               </div>
-
               <div className="col-md-3">
                 <div className="card text-center shadow-sm">
                   <div className="card-body">
@@ -1054,7 +1120,6 @@ export default function ExpenseManager() {
                   </div>
                 </div>
               </div>
-
               <div className="col-md-3">
                 <div className="card text-center shadow-sm">
                   <div className="card-body">
@@ -1071,7 +1136,6 @@ export default function ExpenseManager() {
                   </div>
                 </div>
               </div>
-
               <div className="col-md-3">
                 <div className="card text-center shadow-sm">
                   <div className="card-body">
@@ -1082,16 +1146,16 @@ export default function ExpenseManager() {
               </div>
             </div>
 
+            {/* Copy button */}
             <div className="card-body">
-              <div className="d-flex justify-content-between mb-0">
-                {/* Left: main table tabs */}
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                {/* Left: Tables Tabs */}
                 <ul className="nav nav-tabs">
                   {["category", "subCategory", "place", "expense"].map(
                     (tab) => (
                       <li className="nav-item" key={tab}>
                         <button
-                          className={`nav-link ${tableTab === tab ? "active" : ""
-                            }`}
+                          className={`nav-link ${tableTab === tab ? "active" : ""}`}
                           onClick={() => setTableTab(tab)}
                         >
                           {tab.charAt(0).toUpperCase() + tab.slice(1)} Table
@@ -1100,24 +1164,22 @@ export default function ExpenseManager() {
                     ),
                   )}
                 </ul>
-
-                {/* Generate Next Month */}
-                <button
-                  className={`nav-link fw-bold ${tableTab === "copyNextMonth"
-                    ? "text-success border border-success"
-                    : "text-success"
-                    }`}
-                  style={{
-                    borderRadius: "0.25rem",
-                    backgroundColor: "transparent",
-                    borderWidth: tableTab === "copyNextMonth" ? "2px" : "1px",
-                    border: "1px solid green",
-                    padding: "0px 5px",
-                  }}
-                  onClick={() => setShowGenerateExpenseModal(true)}
-                >
-                  Copy Expenses Next Month
-                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-sm btn-outline-success"
+                    onClick={() => setShowCopyCategoryBudgetModal(true)}
+                  >
+                    <i className="bi bi-files me-1" />
+                    Copy Categories
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-success"
+                    onClick={() => setShowGenerateExpenseModal(true)}
+                  >
+                    <i className="bi bi-calendar2-plus me-1" />
+                    Copy Expenses
+                  </button>
+                </div>
               </div>
 
               {/* Category Table */}
@@ -1318,40 +1380,64 @@ export default function ExpenseManager() {
                   </div>
 
                   <div className="table-responsive">
-                    <table className="table table-hover align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+                    <table
+                      className="table table-hover align-middle mb-0"
+                      style={{ fontSize: "0.85rem" }}
+                    >
                       <thead className="table-light">
                         <tr>
                           <th
                             style={{ width: "120px", cursor: "pointer" }}
                             onClick={() =>
-                              setExpenseSort({ field: "date", asc: !expenseSort.asc })
+                              setExpenseSort({
+                                field: "date",
+                                asc: !expenseSort.asc,
+                              })
                             }
                           >
                             Date
                           </th>
 
-                          <th style={{ cursor: "pointer" }}
+                          <th
+                            style={{ cursor: "pointer" }}
                             onClick={() =>
-                              setExpenseSort({ field: "category", asc: !expenseSort.asc })
-                            }>
+                              setExpenseSort({
+                                field: "category",
+                                asc: !expenseSort.asc,
+                              })
+                            }
+                          >
                             Category
                           </th>
 
-                          <th style={{ cursor: "pointer" }}
+                          <th
+                            style={{ cursor: "pointer" }}
                             onClick={() =>
-                              setExpenseSort({ field: "subCategory", asc: !expenseSort.asc })
-                            }>
+                              setExpenseSort({
+                                field: "subCategory",
+                                asc: !expenseSort.asc,
+                              })
+                            }
+                          >
                             SubCategory
                           </th>
 
-                          <th style={{ cursor: "pointer" }}
+                          <th
+                            style={{ cursor: "pointer" }}
                             onClick={() =>
-                              setExpenseSort({ field: "place", asc: !expenseSort.asc })
-                            }>
+                              setExpenseSort({
+                                field: "place",
+                                asc: !expenseSort.asc,
+                              })
+                            }
+                          >
                             Place
                           </th>
 
-                          <th className="text-end" style={{ width: "100px" }}>
+                          <th
+                            className="text-truncate"
+                            style={{ width: "100px" }}
+                          >
                             Amount
                           </th>
 
@@ -1377,7 +1463,10 @@ export default function ExpenseManager() {
                         {sortedExpenseInTable.map((exp) => (
                           <tr key={exp.id}>
                             {/* Date */}
-                            <td className="text-nowrap text-muted" style={{ whiteSpace: "nowrap" }}>
+                            <td
+                              className="text-nowrap text-muted"
+                              style={{ whiteSpace: "nowrap" }}
+                            >
                               {exp.date?.split("T")[0]}
                             </td>
 
@@ -1391,7 +1480,7 @@ export default function ExpenseManager() {
                             <td>{getPlaceName(exp.placeId)}</td>
 
                             {/* Amount */}
-                            <td className="text-end fw-semibold">
+                            <td className="text-truncate fw-semibold">
                               ${Number(exp.amount).toFixed(2)}
                             </td>
 
@@ -1399,12 +1488,20 @@ export default function ExpenseManager() {
                             <td>{exp.paidFor}</td>
 
                             {/* Item Name */}
-                            <td className="text-truncate" style={{ maxWidth: "140px" }} title={exp.itemName}>
+                            <td
+                              className="text-truncate"
+                              style={{ maxWidth: "140px" }}
+                              title={exp.itemName}
+                            >
                               {exp.itemName}
                             </td>
 
                             {/* Note */}
-                            <td className="text-truncate text-muted" style={{ maxWidth: "180px" }} title={exp.note}>
+                            <td
+                              className="text-truncate text-muted"
+                              style={{ maxWidth: "180px" }}
+                              title={exp.note}
+                            >
                               {exp.note}
                             </td>
 
@@ -1418,8 +1515,11 @@ export default function ExpenseManager() {
                             </td>
 
                             {/* Actions (Icons only) */}
-                            <td className="text-center" style={{ fontSize: "1rem" }}>
-                              <FaEdit
+                            <td
+                              className="text-center"
+                              style={{ fontSize: "1rem" }}
+                            >
+                              <FaPen
                                 className="text-primary me-2"
                                 style={{ cursor: "pointer" }}
                                 title="Edit"
@@ -1438,7 +1538,10 @@ export default function ExpenseManager() {
 
                         {sortedExpenseInTable.length === 0 && (
                           <tr>
-                            <td colSpan="10" className="text-center text-muted py-4">
+                            <td
+                              colSpan="10"
+                              className="text-center text-muted py-4"
+                            >
                               No expenses found
                             </td>
                           </tr>
@@ -1448,8 +1551,6 @@ export default function ExpenseManager() {
                   </div>
                 </div>
               )}
-
-
             </div>
           </div>
         </div>
@@ -1788,7 +1889,7 @@ export default function ExpenseManager() {
           </div>
         </div>
       )}
-      {editExpenseModalOpen && (
+      {/* {editExpenseModalOpen && (
         <div className="modal show d-block" tabIndex="-1">
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
@@ -1815,7 +1916,6 @@ export default function ExpenseManager() {
                       }
                     />
                   </div>
-                  {/* Category */}
                   <div className="col-6">
                     <select
                       className="form-select"
@@ -1836,7 +1936,6 @@ export default function ExpenseManager() {
                     </select>
                   </div>
 
-                  {/* SubCategory */}
                   <div className="col-6">
                     <select
                       className="form-select"
@@ -1860,8 +1959,6 @@ export default function ExpenseManager() {
                         ))}
                     </select>
                   </div>
-
-                  {/* Place */}
                   <div className="col-6">
                     <select
                       className="form-select"
@@ -1885,8 +1982,6 @@ export default function ExpenseManager() {
                         ))}
                     </select>
                   </div>
-
-                  {/* Amount */}
                   <div className="col-6">
                     <input
                       type="number"
@@ -1901,8 +1996,6 @@ export default function ExpenseManager() {
                       }
                     />
                   </div>
-
-                  {/* Paid For */}
                   <div className="col-6">
                     <input
                       type="text"
@@ -1917,8 +2010,6 @@ export default function ExpenseManager() {
                       }
                     />
                   </div>
-
-                  {/* Note */}
                   <div className="col-12">
                     <textarea
                       className="form-control"
@@ -1932,8 +2023,6 @@ export default function ExpenseManager() {
                       }
                     ></textarea>
                   </div>
-
-                  {/* isFixed */}
                   <div className="col-12">
                     <div className="form-check">
                       <input
@@ -1965,12 +2054,246 @@ export default function ExpenseManager() {
                 >
                   Save Changes
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )} */}
 
+      {editExpenseModalOpen && (
+        <div className="modal show d-block" tabIndex="-1">
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              {/* Modal Header */}
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Expense</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setEditExpenseModalOpen(false)}
+                />
+              </div>
+
+              {/* Modal Body */}
+              <div className="modal-body">
+                <div className="row g-2">
+                  {/* Date */}
+                  <div className="col-12 col-sm-6">
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={editExpenseForm.date || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          date: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Category */}
+                  <div className="col-12 col-sm-6">
+                    <select
+                      className="form-select"
+                      value={editExpenseForm.categoryId || ""}
+                      onChange={(e) => {
+                        const value = e.target.value; // keep as string
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          categoryId: value,
+                          subCategoryId: "", // reset subcategory
+                          placeId: "", // reset place
+                        }));
+                      }}
+                    >
+                      <option value="">Choose Category</option>
+                      {categories
+                        .filter((c) => c.isActive)
+                        .map((c) => (
+                          <option key={c.catId} value={String(c.catId)}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  {/* SubCategory */}
+                  <div className="col-12 col-sm-6">
+                    <select
+                      className="form-select"
+                      value={editExpenseForm.subCategoryId || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          subCategoryId: e.target.value, // string
+                        }))
+                      }
+                      disabled={!editExpenseForm.categoryId}
+                    >
+                      <option value="">Choose a SubCategory (optional)</option>
+                      {subCategories
+                        .filter(
+                          (sc) =>
+                            String(sc.categoryId) ===
+                            String(editExpenseForm.categoryId),
+                        )
+                        .map((sc) => (
+                          <option key={sc.id} value={String(sc.id)}>
+                            {sc.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {/* Place */}
+                  <div className="col-12 col-sm-6">
+                    {/* <select
+                      className="form-select"
+                      value={editExpenseForm.placeId || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          placeId: e.target.value, // string
+                        }))
+                      }
+                      disabled={!editExpenseForm.categoryId} // only enable if category selected
+                    >
+                      <option value="">Choose a Place (optional)</option>
+                      {places
+                        .filter(
+                          (p) =>
+                            String(p.categoryId) ===
+                            String(editExpenseForm.categoryId),
+                        )
+                        .map((p) => (
+                          <option key={p.id} value={String(p.id)}>
+                            {p.name}
+                          </option>
+                        ))}
+                    </select> */}
+                    <select
+                      className="form-select"
+                      value={editExpenseForm.placeId || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          placeId: e.target.value,
+                        }))
+                      }
+                      disabled={!editExpenseForm.categoryId}
+                    >
+                      <option value="">Choose a Place (optional)</option>
+                      {places.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="col-12 col-sm-6">
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="Amount"
+                      value={editExpenseForm.amount || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          amount: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Paid For */}
+                  <div className="col-12 col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Paid For"
+                      value={editExpenseForm.paidFor || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          paidFor: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Item Name */}
+                  <div className="col-12 col-sm-6">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Item Name"
+                      value={editExpenseForm.itemName || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          itemName: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Note */}
+                  <div className="col-12">
+                    <textarea
+                      className="form-control"
+                      placeholder="Note"
+                      value={editExpenseForm.note || ""}
+                      onChange={(e) =>
+                        setEditExpenseForm((prev) => ({
+                          ...prev,
+                          note: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Fixed */}
+                  <div className="col-12">
+                    <div className="form-check mb-2">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={!!editExpenseForm.isFixed}
+                        onChange={(e) =>
+                          setEditExpenseForm((prev) => ({
+                            ...prev,
+                            isFixed: e.target.checked,
+                          }))
+                        }
+                      />
+                      <label className="form-check-label">Fixed Expense</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setEditExpenseModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => saveEditExpense(editExpenseForm.id)}
+                >
+                  Save Changes
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
       <Modal
         show={showGenerateModal}
         onHide={() => setShowGenerateExpenseModal(false)}
@@ -1981,97 +2304,121 @@ export default function ExpenseManager() {
         </Modal.Header>
 
         <Modal.Body>
-          {/* SOURCE MONTH */}
           <Form.Group className="mb-3">
-            <Form.Label className="fw-semibold">
-              Source Month (searched month)
-            </Form.Label>
-            <Form.Control
-              readOnly
-              value={`${selectedYear} - ${monthNames[selectedMonth - 1]}`}
-            />
+            <Form.Label className="fw-semibold">Source Month & Year</Form.Label>
+            <div className="d-flex gap-2">
+              <Form.Select
+                value={generateRange.sourceMonth}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setGenerateRange((p) => ({
+                    ...p,
+                    sourceMonth: val,
+                    fromMonth: val + 1 > 12 ? 12 : val + 1,
+                    toMonth: val + 1 > 12 ? 12 : val + 1,
+                  }));
+                }}
+              >
+                {monthNames.map((monthName, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {monthName}
+                  </option>
+                ))}
+              </Form.Select>
+
+              <Form.Control
+                type="number"
+                value={generateRange.sourceYear}
+                onChange={(e) =>
+                  setGenerateRange((p) => ({
+                    ...p,
+                    sourceYear: Number(e.target.value),
+                  }))
+                }
+              />
+            </div>
           </Form.Group>
 
-          {!hasDataToCopy && (
-            <Alert variant="warning">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              There are no incomes in this month to copy.
-            </Alert>
-          )}
+          {/* Copy to Months */}
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold">Copy to Months</Form.Label>
+            <div className="d-flex gap-2 align-items-center">
+              <Form.Label className="mb-0">From</Form.Label>
+              <Form.Select
+                value={generateRange.fromMonth}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setGenerateRange((p) => ({
+                    ...p,
+                    fromMonth: val,
+                    toMonth: Math.max(val, p.toMonth),
+                  }));
+                }}
+              >
+                {monthNames
+                  .map((monthName, i) => ({ label: monthName, value: i + 1 }))
+                  // Target months must be after source month
+                  .filter((m) => m.value > generateRange.sourceMonth)
+                  .map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+              </Form.Select>
 
-          {hasDataToCopy && (
-            <>
-              {/* TARGET RANGE */}
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Copy to range</Form.Label>
+              <Form.Label className="mb-0">To</Form.Label>
+              <Form.Select
+                value={generateRange.toMonth}
+                onChange={(e) =>
+                  setGenerateRange((p) => ({
+                    ...p,
+                    toMonth: Number(e.target.value),
+                  }))
+                }
+              >
+                {monthNames
+                  .map((monthName, i) => ({ label: monthName, value: i + 1 }))
+                  .filter((m) => m.value >= generateRange.fromMonth)
+                  .map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+              </Form.Select>
+            </div>
 
-                {/* FROM */}
-                <div className="d-flex gap-2 mb-2">
-                  <Form.Select
-                    value={generateRange.fromMonth}
-                    onChange={(e) =>
-                      setGenerateRange((p) => ({
-                        ...p,
-                        fromMonth: Number(e.target.value),
-                      }))
-                    }
-                  >
-                    {monthNames.map((m, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {m}
-                      </option>
-                    ))}
-                  </Form.Select>
-
-                  <Form.Control
-                    type="number"
-                    value={generateRange.fromYear}
-                    onChange={(e) =>
-                      setGenerateRange((p) => ({
-                        ...p,
-                        fromYear: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-
-                {/* TO */}
-                <div className="d-flex gap-2">
-                  <Form.Select
-                    value={generateRange.toMonth}
-                    onChange={(e) =>
-                      setGenerateRange((p) => ({
-                        ...p,
-                        toMonth: Number(e.target.value),
-                      }))
-                    }
-                  >
-                    {monthNames.map((m, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {m}
-                      </option>
-                    ))}
-                  </Form.Select>
-
-                  <Form.Control
-                    type="number"
-                    value={generateRange.toYear}
-                    onChange={(e) =>
-                      setGenerateRange((p) => ({
-                        ...p,
-                        toYear: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-              </Form.Group>
-
-              <Alert variant="info" className="mb-0">
-                Only the Expense displayed for the selected month will be
-                copied. Existing incomes in target months will be skipped
-                automatically.
+            {/* Info alert only shown if no API message yet */}
+            {!copyMessage && (
+              <Alert variant="info" className="mt-2 mb-0">
+                Only the expenses from the selected source month will be copied.
+                Target months must be after the source month and within the same
+                year.
               </Alert>
-            </>
+            )}
+          </Form.Group>
+
+          {/* Warnings */}
+          {/* {!hasDataToCopy && !copyMessage && (
+            <Alert variant="warning" className="mt-2 mb-0">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              There are no expenses in this month to copy, but you can still
+              select target months.
+            </Alert>
+          )} */}
+
+          {/* API message */}
+          {copyMessage && (
+            <Alert
+              variant={
+                copyMessage.toLowerCase().includes("success")
+                  ? "success"
+                  : "warning"
+              }
+              className="mt-2 mb-0"
+            >
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {copyMessage}
+            </Alert>
           )}
         </Modal.Body>
 
@@ -2082,17 +2429,179 @@ export default function ExpenseManager() {
           >
             Cancel
           </Button>
-
           <Button
             variant="success"
-            disabled={!hasDataToCopy}
             onClick={async () => {
-              const payload = buildGeneratePayload();
-              console.log("Generate payload:", payload);
+              try {
+                const payload = {
+                  UserId: userId,
+                  SourceMonth: generateRange.sourceMonth,
+                  SourceYear: generateRange.sourceYear,
+                  TargetFromMonth: generateRange.fromMonth,
+                  TargetToMonth: generateRange.toMonth,
+                };
+                const { data } = await copyExpenseByRange(payload);
+                setCopyMessage(data.message);
 
-              await copyExpenseByRange(payload);
+                await refreshAll();
+              } catch (err) {
+                setCopyMessage(
+                  err.response?.data ||
+                    "Something went wrong while copying expenses.",
+                );
+              }
+            }}
+          >
+            Copy
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-              setShowGenerateExpenseModal(false);
+      {/* Modal */}
+      <Modal
+        show={showCopyCategoryBudgetModal}
+        onHide={() => setShowCopyCategoryBudgetModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Copy Category Budget</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {/* Source Month & Year */}
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold">Source Month & Year</Form.Label>
+            <div className="d-flex gap-2">
+              <Form.Select
+                value={categoryBudgetRange.sourceMonth}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setCategoryBudgetRange((p) => ({
+                    ...p,
+                    sourceMonth: val,
+                    fromMonth: val + 1 > 12 ? 12 : val + 1,
+                    toMonth: val + 1 > 12 ? 12 : val + 1,
+                  }));
+                }}
+              >
+                {monthNames.map((monthName, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {monthName}
+                  </option>
+                ))}
+              </Form.Select>
+
+              <Form.Control
+                type="number"
+                value={categoryBudgetRange.sourceYear}
+                onChange={(e) =>
+                  setCategoryBudgetRange((p) => ({
+                    ...p,
+                    sourceYear: Number(e.target.value),
+                  }))
+                }
+              />
+            </div>
+          </Form.Group>
+
+          {/* Copy to Months */}
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-semibold">Copy to Months</Form.Label>
+            <div className="d-flex gap-2 align-items-center">
+              <Form.Label className="mb-0">From</Form.Label>
+              <Form.Select
+                value={categoryBudgetRange.fromMonth}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setCategoryBudgetRange((p) => ({
+                    ...p,
+                    fromMonth: val,
+                    toMonth: Math.max(val, p.toMonth),
+                  }));
+                }}
+              >
+                {monthNames
+                  .map((monthName, i) => ({ label: monthName, value: i + 1 }))
+                  .filter((m) => m.value > categoryBudgetRange.sourceMonth)
+                  .map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+              </Form.Select>
+
+              <Form.Label className="mb-0">To</Form.Label>
+              <Form.Select
+                value={categoryBudgetRange.toMonth}
+                onChange={(e) =>
+                  setCategoryBudgetRange((p) => ({
+                    ...p,
+                    toMonth: Number(e.target.value),
+                  }))
+                }
+              >
+                {monthNames
+                  .map((monthName, i) => ({ label: monthName, value: i + 1 }))
+                  .filter((m) => m.value >= categoryBudgetRange.fromMonth)
+                  .map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+              </Form.Select>
+            </div>
+
+            {!categoryCopyMessage && (
+              <Alert variant="info" className="mt-2 mb-0">
+                Only the budgets from the selected source month will be copied.
+                Target months must be after the source month and within the same
+                year.
+              </Alert>
+            )}
+          </Form.Group>
+
+          {/* API message */}
+          {categoryCopyMessage && (
+            <Alert
+              variant={
+                categoryCopyMessage.toLowerCase().includes("success")
+                  ? "success"
+                  : "warning"
+              }
+              className="mt-2 mb-0"
+            >
+              {categoryCopyMessage}
+            </Alert>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowCopyCategoryBudgetModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="success"
+            onClick={async () => {
+              try {
+                const payload = {
+                  UserId: userId,
+                  SourceMonth: categoryBudgetRange.sourceMonth,
+                  SourceYear: categoryBudgetRange.sourceYear,
+                  TargetFromMonth: categoryBudgetRange.fromMonth,
+                  TargetToMonth: categoryBudgetRange.toMonth,
+                };
+                const { data } = await copyCategoryBudget(payload);
+                setCategoryCopyMessage(data.message);
+                await refreshAll();
+              } catch (err) {
+                setCategoryCopyMessage(
+                  err.response?.data ||
+                    "Something went wrong while copying budgets.",
+                );
+              }
             }}
           >
             Copy
