@@ -471,6 +471,30 @@ const IncomePage = () => {
   const [sourceMonth, setSourceMonth] = useState(selectedMonth);
   const [sourceYear, setSourceYear] = useState(selectedYear);
 
+  // Delete Modal
+  const [showDeleteIncomeModal, setShowDeleteIncomeModal] = useState(false);
+  const [incomeToDelete, setIncomeToDelete] = useState(null);
+
+  const confirmDeleteIncome = (income) => {
+    setIncomeToDelete(income);
+    setShowDeleteIncomeModal(true);
+  };
+
+  const handleDeleteIncomeConfirmed = async () => {
+    if (!incomeToDelete) return;
+
+    try {
+      await deleteIncome(incomeToDelete.id);
+      setIncomeList((prev) => prev.filter((i) => i.id !== incomeToDelete.id));
+    } catch (err) {
+      console.error("Failed to delete income:", err);
+      setError("Failed to delete income.");
+    } finally {
+      setShowDeleteIncomeModal(false);
+      setIncomeToDelete(null);
+    }
+  };
+
   return (
     <div className="container mt-4" style={{ margin: "auto" }}>
       <div className="d-flex justify-content-between align-items-end mb-3">
@@ -681,10 +705,18 @@ const IncomePage = () => {
                       >
                         <i className="bi bi-pencil" title="Edit Income"></i>
                       </Button>
-                      <Button
+                      {/* <Button
                         variant="outline-danger"
                         size="sm"
                         onClick={() => handleDeleteIncome(income.id)}
+                      >
+                        <i className="bi bi-trash" title="Delete Income"></i>
+                      </Button> */}
+
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => confirmDeleteIncome(income)}
                       >
                         <i className="bi bi-trash" title="Delete Income"></i>
                       </Button>
@@ -1047,6 +1079,34 @@ const IncomePage = () => {
             }}
           >
             Copy
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Modal */}
+      <Modal
+        show={showDeleteIncomeModal}
+        onHide={() => setShowDeleteIncomeModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete the income from "
+          {incomeToDelete?.sourceType}" on{" "}
+          {incomeToDelete && new Date(incomeToDelete.date).toLocaleDateString()}
+          ?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteIncomeModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDeleteIncomeConfirmed}>
+            Delete
           </Button>
         </Modal.Footer>
       </Modal>

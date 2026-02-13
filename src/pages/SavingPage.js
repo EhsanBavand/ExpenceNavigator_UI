@@ -342,22 +342,28 @@ const SavingPage = () => {
           </tbody>
         </table>
       </div>
-
       {/* Save Allocations */}
-      {remaining > 0 && (
-        <div className="d-flex justify-content-between align-items-center alert alert-warning">
-          <span>
-            You still have <strong>${remaining}</strong> unallocated.
-          </span>
-          <button
-            className="btn btn-success"
-            onClick={handleSaveAllAllocations}
-            disabled={totalAllocated === 0}
-          >
-            Save All Allocations
-          </button>
-        </div>
-      )}
+      <div className="d-flex justify-content-between align-items-center alert alert-warning">
+        <span>
+          {totalAllocated > extraMoney ? (
+            <>You cannot allocate more than your Extra Money (${extraMoney})!</>
+          ) : remaining > 0 ? (
+            <>
+              You still have <strong>${remaining}</strong> unallocated.
+            </>
+          ) : (
+            <>All Extra Money allocated.</>
+          )}
+        </span>
+
+        <button
+          className="btn btn-success"
+          onClick={handleSaveAllAllocations}
+          disabled={totalAllocated === 0 || totalAllocated > extraMoney}
+        >
+          Save All Allocations
+        </button>
+      </div>
 
       {/* Add Modal */}
       {showAddModal && (

@@ -692,62 +692,6 @@ export default function ExpenseManager() {
     setSelectedYear(uiYear);
   };
 
-  // const openEditExpenseModal = (expense) => {
-  //   setEditExpenseForm({
-  //     id: expense.id,
-  //     date: expense.date?.split("T")[0] || "",
-  //     categoryId: expense.categoryId || "",
-  //     subCategoryId: expense.subCategoryId || "",
-  //     placeId: expense.placeId || "",
-  //     amount: expense.amount || "",
-  //     paidFor: expense.paidFor || "",
-  //     itemName: expense.itemName || "",
-  //     note: expense.note || "",
-  //     isFixed: expense.isFixed || false,
-  //   });
-
-  //   setEditExpenseModalOpen(true);
-  // };
-
-  // const openEditExpenseModal = (exp) => {
-  //   setEditExpenseForm({
-  //     id: exp.id,
-  //     date: exp.date?.split("T")[0] ?? "",
-  //     categoryId: exp.categoryId ? Number(exp.categoryId) : "",
-  //     subCategoryId: exp.subCategoryId ? Number(exp.subCategoryId) : "",
-  //     placeId: exp.placeId ? Number(exp.placeId) : "",
-  //     amount: exp.amount,
-  //     paidFor: exp.paidFor || "",
-  //     itemName: exp.itemName || "",
-  //     note: exp.note || "",
-  //     isFixed: !!exp.isFixed,
-  //   });
-
-  //   console.log("Exp: " + exp);
-  //   console.log("Model setEditExpenseForm " + setEditExpenseForm);
-
-  //   setEditExpenseModalOpen(true);
-  // };
-
-  // const openEditExpenseModal = (exp) => {
-  //   setEditExpenseForm({
-  //     id: exp.id,
-  //     date: exp.date?.split("T")[0] ?? "",
-  //     // Keep everything as strings for <select>, convert only on save
-  //     categoryId: exp.categoryId ? String(exp.categoryId) : "",
-  //     subCategoryId: exp.subCategoryId ? String(exp.subCategoryId) : "",
-  //     placeId: exp.placeId ? String(exp.placeId) : "",
-  //     amount: exp.amount ?? "",
-  //     paidFor: exp.paidFor || "",
-  //     itemName: exp.itemName || "",
-  //     note: exp.note || "",
-  //     isFixed: !!exp.isFixed,
-  //   });
-  //   console.log("Exp: " + exp);
-  //   console.log("Model setEditExpenseForm " + setEditExpenseForm);
-  //   setEditExpenseModalOpen(true);
-  // };
-
   // When opening the modal
   const openEditExpenseModal = (exp) => {
     setEditExpenseForm({
@@ -1207,7 +1151,34 @@ export default function ExpenseManager() {
                         {/* <td>{cat.isRecurring ? "Yes" : "No"}</td> */}
                         <td>{cat.isActive ? "Yes" : "No"}</td>
                         <td>
-                          <button
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => openEditCategoryModal(cat)}
+                          >
+                            <i className="bi bi-pencil" title="Edit Income"></i>
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() =>
+                              handleDelete(
+                                cat.catId,
+                                "category",
+                                userId,
+                                parseInt(selectedMonth),
+                                parseInt(selectedYear),
+                              )
+                            }
+                          >
+                            <i
+                              className="bi bi-trash"
+                              title="Delete Income"
+                            ></i>
+                          </Button>
+
+                          {/* <button
                             className="btn btn-sm btn-primary me-2"
                             onClick={() => openEditCategoryModal(cat)}
                           >
@@ -1226,7 +1197,7 @@ export default function ExpenseManager() {
                             }
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </td>
                       </tr>
                     ))}
@@ -1271,7 +1242,34 @@ export default function ExpenseManager() {
                         {/* <td>{sc.isRecurring ? "Yes" : "No"}</td> */}
                         <td>{sc.isActive ? "Yes" : "No"}</td>
                         <td>
-                          <button
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => openEditSubCategoryModal(sc)}
+                          >
+                            <i className="bi bi-pencil" title="Edit Income"></i>
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() =>
+                              handleDelete(
+                                sc.id,
+                                "subCategory",
+                                userId,
+                                parseInt(selectedMonth),
+                                parseInt(selectedYear),
+                              )
+                            }
+                          >
+                            <i
+                              className="bi bi-trash"
+                              title="Delete Income"
+                            ></i>
+                          </Button>
+
+                          {/* <button
                             className="btn btn-sm btn-primary me-2"
                             onClick={() => openEditSubCategoryModal(sc)}
                           >
@@ -1290,7 +1288,7 @@ export default function ExpenseManager() {
                             }
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </td>
                       </tr>
                     ))}
@@ -1338,7 +1336,34 @@ export default function ExpenseManager() {
                         {/* <td>{subCategories.find(sc => sc.id === p.subCategoryId)?.name || "-"}</td> */}
                         <td>{p.isActive ? "Yes" : "No"}</td>
                         <td>
-                          <button
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => openEditPlaceModal(p)}
+                          >
+                            <i className="bi bi-pencil" title="Edit Income"></i>
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() =>
+                              handleDelete(
+                                p.id,
+                                "place",
+                                userId,
+                                parseInt(selectedMonth),
+                                parseInt(selectedYear),
+                              )
+                            }
+                          >
+                            <i
+                              className="bi bi-trash"
+                              title="Delete Income"
+                            ></i>
+                          </Button>
+
+                          {/* <button
                             className="btn btn-sm btn-primary me-2"
                             onClick={() => openEditPlaceModal(p)}
                           >
@@ -1357,7 +1382,7 @@ export default function ExpenseManager() {
                             }
                           >
                             Delete
-                          </button>
+                          </button> */}
                         </td>
                       </tr>
                     ))}
@@ -1525,7 +1550,6 @@ export default function ExpenseManager() {
                                 title="Edit"
                                 onClick={() => openEditExpenseModal(exp)}
                               />
-
                               <FaTrash
                                 className="text-danger"
                                 style={{ cursor: "pointer" }}
@@ -1663,7 +1687,7 @@ export default function ExpenseManager() {
                 />
 
                 {/* Is Recurring */}
-                <div className="form-check">
+                {/* <div className="form-check">
                   <input
                     type="checkbox"
                     className="form-check-input"
@@ -1679,7 +1703,7 @@ export default function ExpenseManager() {
                   <label className="form-check-label" htmlFor="editIsRecurring">
                     Is Recurring
                   </label>
-                </div>
+                </div> */}
 
                 {/* Is Active */}
                 <div className="form-check">
@@ -1754,7 +1778,7 @@ export default function ExpenseManager() {
                   onChange={(e) => setEditSubCategoryName(e.target.value)}
                 />
                 {/* Is Recurring */}
-                <div className="form-check">
+                {/* <div className="form-check">
                   <input
                     type="checkbox"
                     className="form-check-input"
@@ -1773,7 +1797,7 @@ export default function ExpenseManager() {
                   >
                     Is Recurring
                   </label>
-                </div>
+                </div> */}
 
                 {/* Is Active */}
                 <div className="form-check">
@@ -1827,12 +1851,12 @@ export default function ExpenseManager() {
               <div className="modal-body">
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control mt-1"
                   value={editPlaceName}
                   onChange={(e) => setEditPlaceName(e.target.value)}
                 />
                 {/* Is Recurring */}
-                <div className="form-check">
+                {/* <div className="form-check">
                   <input
                     type="checkbox"
                     className="form-check-input"
@@ -1851,7 +1875,7 @@ export default function ExpenseManager() {
                   >
                     Is Recurring
                   </label>
-                </div>
+                </div> */}
                 {/* Is Active */}
                 <div className="form-check">
                   <input
@@ -1889,177 +1913,6 @@ export default function ExpenseManager() {
           </div>
         </div>
       )}
-      {/* {editExpenseModalOpen && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Edit Expense</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setEditExpenseModalOpen(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="row g-2">
-                  <div className="col-6">
-                    <input
-                      type="date"
-                      className="form-control"
-                      value={editExpenseForm.date || ""}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          date: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="col-6">
-                    <select
-                      className="form-select"
-                      value={editExpenseForm.categoryId}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          categoryId: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Category</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col-6">
-                    <select
-                      className="form-select"
-                      value={editExpenseForm.subCategoryId || ""}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          subCategoryId: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">SubCategory (optional)</option>
-                      {subCategories
-                        .filter(
-                          (sc) => sc.categoryId === editExpenseForm.categoryId,
-                        )
-                        .map((sc) => (
-                          <option key={sc.id} value={sc.id}>
-                            {sc.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div className="col-6">
-                    <select
-                      className="form-select"
-                      value={editExpenseForm.placeId || ""}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          placeId: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Place (optional)</option>
-                      {places
-                        .filter(
-                          (p) => p.categoryId === editExpenseForm.categoryId,
-                        )
-                        .map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div className="col-6">
-                    <input
-                      type="number"
-                      className="form-control"
-                      placeholder="Amount"
-                      value={editExpenseForm.amount}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          amount: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="col-6">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Paid For"
-                      value={editExpenseForm.paidFor}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          paidFor: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="col-12">
-                    <textarea
-                      className="form-control"
-                      placeholder="Note"
-                      value={editExpenseForm.note}
-                      onChange={(e) =>
-                        setEditExpenseForm({
-                          ...editExpenseForm,
-                          note: e.target.value,
-                        })
-                      }
-                    ></textarea>
-                  </div>
-                  <div className="col-12">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={editExpenseForm.isFixed || false}
-                        onChange={(e) =>
-                          setEditExpenseForm({
-                            ...editExpenseForm,
-                            isFixed: e.target.checked,
-                          })
-                        }
-                      />
-                      <label className="form-check-label">Fixed Expense</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setEditExpenseModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => saveEditExpense(editExpenseForm.id)}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
-
       {editExpenseModalOpen && (
         <div className="modal show d-block" tabIndex="-1">
           <div className="modal-dialog modal-lg">
@@ -2466,9 +2319,7 @@ export default function ExpenseManager() {
         <Modal.Header closeButton>
           <Modal.Title>Copy Category Budget</Modal.Title>
         </Modal.Header>
-
         <Modal.Body>
-          {/* Source Month & Year */}
           <Form.Group className="mb-3">
             <Form.Label className="fw-semibold">Source Month & Year</Form.Label>
             <div className="d-flex gap-2">
@@ -2503,8 +2354,6 @@ export default function ExpenseManager() {
               />
             </div>
           </Form.Group>
-
-          {/* Copy to Months */}
           <Form.Group className="mb-3">
             <Form.Label className="fw-semibold">Copy to Months</Form.Label>
             <div className="d-flex gap-2 align-items-center">
@@ -2559,8 +2408,6 @@ export default function ExpenseManager() {
               </Alert>
             )}
           </Form.Group>
-
-          {/* API message */}
           {categoryCopyMessage && (
             <Alert
               variant={
