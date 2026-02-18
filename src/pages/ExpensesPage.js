@@ -441,6 +441,7 @@ export default function ExpenseManager() {
         createdDate: editSubCategoryItem.createdDate || null,
         isRecurring: editSubCategoryItem.isRecurring,
         isActive: editSubCategoryItem.isActive,
+        userId,
       };
 
       await updateSubCategory(editSubCategoryItem.id, payload);
@@ -454,6 +455,40 @@ export default function ExpenseManager() {
     }
   };
 
+  // const saveEditPlace = async () => {
+  //   try {
+  //     const userId = localStorage.getItem("userId");
+  //     const payload = {
+  //       name: editPlaceName,
+  //       subCategoryId: editPlaceSubCategory || null,
+  //       userId,
+  //       isRecurring: editPlaceItem.isRecurring,
+  //       isActive: editPlaceItem.isActive,
+  //     };
+
+  //     // console.log("Payload:", payload);
+
+  //     await updatePlace(editPlaceItem.id, payload);
+
+  //     setPlaces(
+  //       places.map((p) =>
+  //         p.id === editPlaceItem.id
+  //           ? {
+  //               ...p,
+  //               name: editPlaceName,
+  //               isRecurring: editPlaceItem.isRecurring,
+  //             }
+  //           : p,
+  //       ),
+  //     );
+
+  //     setEditPlaceModalOpen(false);
+  //   } catch (err) {
+  //     console.error("Failed to update place:", err.response?.data || err);
+  //     alert("Failed to update place");
+  //   }
+  // };
+
   const saveEditPlace = async () => {
     try {
       const userId = localStorage.getItem("userId");
@@ -465,17 +500,18 @@ export default function ExpenseManager() {
         isActive: editPlaceItem.isActive,
       };
 
-      // console.log("Payload:", payload);
-
       await updatePlace(editPlaceItem.id, payload);
 
-      setPlaces(
-        places.map((p) =>
+      // ✅ Update BOTH isActive and other fields, and use functional updater
+      setPlaces((prev) =>
+        prev.map((p) =>
           p.id === editPlaceItem.id
             ? {
                 ...p,
                 name: editPlaceName,
                 isRecurring: editPlaceItem.isRecurring,
+                isActive: editPlaceItem.isActive, // <-- add this
+                subCategoryId: editPlaceSubCategory ?? p.subCategoryId,
               }
             : p,
         ),
@@ -1855,27 +1891,6 @@ export default function ExpenseManager() {
                   value={editPlaceName}
                   onChange={(e) => setEditPlaceName(e.target.value)}
                 />
-                {/* Is Recurring */}
-                {/* <div className="form-check">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="editPlaceIsRecurring"
-                    checked={editPlaceItem?.isRecurring ?? false}
-                    onChange={(e) =>
-                      setEditPlaceItem({
-                        ...editPlaceItem,
-                        isRecurring: e.target.checked,
-                      })
-                    }
-                  />
-                  <label
-                    className="form-check-label"
-                    htmlFor="editPlaceIsRecurring"
-                  >
-                    Is Recurring
-                  </label>
-                </div> */}
                 {/* Is Active */}
                 <div className="form-check">
                   <input

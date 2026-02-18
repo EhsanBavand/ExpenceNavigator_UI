@@ -36,7 +36,9 @@ const Sidebar = ({ isOpen, onToggle, isDesktop }) => {
               label: "Expenses",
             },
             { path: "/saving", icon: "bi-piggy-bank-fill", label: "Saving" },
-            { path: "/settings", icon: "bi-gear-fill", label: "Settings" },
+            {
+              /* { path: "/settings", icon: "bi-gear-fill", label: "Settings" }, */
+            },
           ].map((item) => (
             <li className="nav-item" key={item.path}>
               <Link

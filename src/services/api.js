@@ -1,6 +1,10 @@
 import axios from "axios";
 
+// Local Host
 const API_BASE_URL = "http://localhost:5283/api";
+
+// // Server Host
+// const API_BASE_URL = "https://expensenavigator.maisonwebapp.com/api";
 
 export const login = async (credentials) => {
   // console.log("Calling login API:", `${API_BASE_URL}/auth/login`);
@@ -183,15 +187,6 @@ export const copyCategoryBudget = (payload) => {
 // SubCategories API
 // =====================
 
-export const getSubCategoryById = async (id) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/SubCategory/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching subcategory ${id}:`, error);
-    throw error;
-  }
-};
 export const getSubCategoriesByCategory = async (categoryId) => {
   try {
     const response = await axios.get(
@@ -208,6 +203,7 @@ export const getSubCategoriesByCategory = async (categoryId) => {
 };
 export const getSubCategories = async (userId) => {
   const res = await axios.get(`${API_BASE_URL}/SubCategory?userId=${userId}`);
+  console.log("res subcategory:", res);
   return res.data;
 };
 export const createSubCategory = async (subCategory) => {
@@ -235,6 +231,15 @@ export const deleteSubCategory = async (id) => {
     throw error;
   }
 };
+export const getSubCategoryById = async (id) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/SubCategory/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching subcategory ${id}:`, error);
+    throw error;
+  }
+};
 
 // =====================
 // Places
@@ -254,6 +259,7 @@ export const getPlaces = async (userId) => {
   const res = await axios.get(`${API_BASE_URL}/Place?userId=${userId}`);
   return res.data;
 };
+
 export const createPlace = async (place) => {
   const res = await axios.post(`${API_BASE_URL}/Place`, place);
   return res.data;
